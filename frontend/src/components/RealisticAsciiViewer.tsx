@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Copy, Check, Download, ZoomIn, ZoomOut, RotateCcw, Sparkles } from 'lucide-react';
+import { Download, ZoomIn, ZoomOut, RotateCcw, Sparkles } from 'lucide-react';
 import type { AsciiGridResult, AsciiPaletteMode } from '../utils/asciiEngine';
 import { soundSynth } from '../utils/audio';
 
@@ -18,7 +18,6 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [viewMode, setViewMode] = useState<'canvas' | 'text'>('canvas');
-  const [copied, setCopied] = useState(false);
   const [zoom, setZoom] = useState(1);
 
   // Render high-density ASCII characters onto the canvas with pixel precision
@@ -75,13 +74,6 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
     }
   }, [asciiData, paletteMode, glow, zoom, viewMode]);
 
-  const handleCopyText = () => {
-    if (!asciiData) return;
-    soundSynth.playSparkle();
-    navigator.clipboard.writeText(asciiData.plainText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleDownloadPng = () => {
     if (!canvasRef.current) return;
@@ -159,14 +151,6 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
               </button>
             </div>
           )}
-
-          <button
-            onClick={handleCopyText}
-            className="px-2.5 py-1 bg-[#141414] hover:bg-[#202020] border border-[#262626] text-white rounded-md flex items-center gap-1 text-[11px] transition-colors"
-          >
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
-          </button>
 
           {viewMode === 'canvas' && (
             <button

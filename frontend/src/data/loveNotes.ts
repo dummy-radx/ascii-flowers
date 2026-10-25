@@ -57,7 +57,7 @@ export const PETAL_REASONS: PetalReason[] = [
   },
   {
     id: 10,
-    text: 'Ishan loves you more than all the flowers in the meadow!',
+    text: 'I love you more than all the flowers in the meadow!',
     subtext: 'Forever and always, without end. ♥',
     color: '#ec4899',
   },

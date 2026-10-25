@@ -50,13 +50,10 @@ export function App() {
 
       {/* Minimalist Monospace Footer */}
       <footer className="border-t border-[#1a1a1a] bg-[#000000] mt-12 py-6 px-4 text-center font-mono text-xs text-[#666666]">
-        <div className="max-w-md mx-auto space-y-1.5">
+        <div className="max-w-md mx-auto">
           <div className="flex items-center justify-center gap-1.5 text-white">
             <span>Crafted by Ishan for Sreeparna</span>
             <Heart className="w-3 h-3 fill-white text-white inline" />
-          </div>
-          <div className="text-[11px] text-[#555555]">
-            Sunflowers • Daisies • Stargazer Lilies • Tulips • Lavender • Pure ASCII Realism
           </div>
         </div>
       </footer>

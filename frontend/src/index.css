@@ -39,3 +39,32 @@ pre.ascii-art {
 ::-webkit-scrollbar-thumb:hover {
   background: #404040;
 }
+
+/* Modal Popup Animations */
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.93) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-pop {
+  animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes backdropFade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-backdrop-fade {
+  animation: backdropFade 0.2s ease-out forwards;
+}

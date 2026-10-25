@@ -57,7 +57,7 @@ export const BouquetBuilder: React.FC = () => {
       glowIntensity: glow ? 0.8 : 0,
     });
     setAsciiData(result);
-  }, [comp, paletteMode, charDensity, gridCols, gridRows, glow, renderer]);
+  }, [comp, paletteMode, charDensity, gridCols, gridRows, glow, renderer, bloomValue]);
 
   // Bloom animation loop
   const startBloomAnimation = () => {
@@ -73,14 +73,13 @@ export const BouquetBuilder: React.FC = () => {
 
     let progress = 0.05;
     const startTime = performance.now();
-    const duration = 3200; // 3.2 seconds for a majestic blossoming
+    const duration = 2800; // 2.8 seconds for smooth blossoming
 
     const step = (now: number) => {
       const elapsed = now - startTime;
       progress = Math.min(1.0, 0.05 + (elapsed / duration) * 0.95);
       setBloomValue(progress);
 
-      // Play chime at 25%, 50%, 75%, 100%
       if (Math.abs(progress - 0.35) < 0.02) soundSynth.playBloom(1);
       if (Math.abs(progress - 0.65) < 0.02) soundSynth.playBloom(2);
       if (Math.abs(progress - 0.95) < 0.02) soundSynth.playBloom(4);
@@ -126,13 +125,13 @@ export const BouquetBuilder: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-mono">
-      {/* Left Control Panel: Pure Minimalist Black & White */}
+      {/* Left Control Panel */}
       <div className="lg:col-span-4 space-y-4">
         {/* Bloom Animation Controller */}
         <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#1c1c1c]">
             <span className="text-[11px] tracking-wider uppercase text-white font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Bloom Physics Engine</span>
             </span>
             <span className="text-[10px] text-[#888888]">
