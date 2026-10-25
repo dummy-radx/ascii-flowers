@@ -44,6 +44,7 @@ export interface PetalReason {
   text: string;
   subtext: string;
   color: string;
+  asciiArt?: string;
 }
 
 export interface LoveNote {

@@ -49,13 +49,17 @@ export const BouquetBuilder: React.FC = () => {
   // Re-render bouquet when params change
   useEffect(() => {
     renderer.drawReferenceBouquet(comp);
-    const result = rasterizeBouquet(renderer.getCanvas(), {
-      width: gridCols,
-      height: gridRows,
-      paletteMode,
-      charDensity,
-      glowIntensity: glow ? 0.8 : 0,
-    });
+    const result = rasterizeBouquet(
+      renderer.getCanvas(),
+      {
+        width: gridCols,
+        height: gridRows,
+        paletteMode,
+        charDensity,
+        glowIntensity: glow ? 0.8 : 0,
+      },
+      renderer.getTextOverlays()
+    );
     setAsciiData(result);
   }, [comp, paletteMode, charDensity, gridCols, gridRows, glow, renderer, bloomValue]);
 

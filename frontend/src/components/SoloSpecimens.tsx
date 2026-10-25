@@ -33,23 +33,97 @@ export const SoloSpecimens: React.FC = () => {
 
     if (selectedFlower === 'lily') {
       renderer.drawLily(cx, cy, 1.25, 0, '#ffffff', '#94a3b8', '#facc15', true, bloomValue);
+      renderer.addTextOverlay({
+        text: '✦ BOTANICAL SPECIMEN: STARGAZER LILY ✦',
+        canvasX: cx,
+        canvasY: 38,
+        color: '#fef08a',
+        align: 'center',
+      });
+      renderer.addTextOverlay({
+        text: '♥ Fragrance of Devotion & Starlight for Sreeparna ♥',
+        canvasX: cx,
+        canvasY: 58,
+        color: '#f472b6',
+        align: 'center',
+      });
     } else if (selectedFlower === 'sunflower') {
       renderer.drawSunflower(cx, cy + 20, 1.15, bloomValue);
+      renderer.addTextOverlay({
+        text: '✦ BOTANICAL SPECIMEN: RADIANT SUNFLOWER ✦',
+        canvasX: cx,
+        canvasY: 38,
+        color: '#fef08a',
+        align: 'center',
+      });
+      renderer.addTextOverlay({
+        text: '♥ Warmth, Loyalty & Pure Sunshine for Sreeparna ♥',
+        canvasX: cx,
+        canvasY: 58,
+        color: '#fbbf24',
+        align: 'center',
+      });
     } else if (selectedFlower === 'tulip') {
       renderer.drawTulip(cx, cy + 50, 1.2, '#fef08a', 140, bloomValue);
+      renderer.addTextOverlay({
+        text: '✦ BOTANICAL SPECIMEN: ROYAL TULIP ✦',
+        canvasX: cx,
+        canvasY: 38,
+        color: '#fef08a',
+        align: 'center',
+      });
+      renderer.addTextOverlay({
+        text: '♥ Grace, Rebirth & Deep Affection for Sreeparna ♥',
+        canvasX: cx,
+        canvasY: 58,
+        color: '#fb7185',
+        align: 'center',
+      });
     } else if (selectedFlower === 'daisy') {
       renderer.drawDaisy(cx, cy + 30, 1.2, bloomValue);
+      renderer.addTextOverlay({
+        text: '✦ BOTANICAL SPECIMEN: MEADOW DAISY ✦',
+        canvasX: cx,
+        canvasY: 38,
+        color: '#fef08a',
+        align: 'center',
+      });
+      renderer.addTextOverlay({
+        text: '♥ Innocence, True Love & Cheerful Radiance ♥',
+        canvasX: cx,
+        canvasY: 58,
+        color: '#38bdf8',
+        align: 'center',
+      });
     } else if (selectedFlower === 'lavender') {
       renderer.drawLavender(cx, cy + 80, 1.3, '#c084fc', 160, bloomValue);
+      renderer.addTextOverlay({
+        text: '✦ BOTANICAL SPECIMEN: FRENCH LAVENDER ✦',
+        canvasX: cx,
+        canvasY: 38,
+        color: '#fef08a',
+        align: 'center',
+      });
+      renderer.addTextOverlay({
+        text: '♥ Calm Serenity & Eternal Devotion for Sreeparna ♥',
+        canvasX: cx,
+        canvasY: 58,
+        color: '#c084fc',
+        align: 'center',
+      });
     }
 
-    const result = rasterizeBouquet(renderer.getCanvas(), {
-      width: gridCols,
-      height: gridRows,
-      paletteMode,
-      charDensity,
-      glowIntensity: glow ? 0.9 : 0,
-    });
+    const result = rasterizeBouquet(
+      renderer.getCanvas(),
+      {
+        width: gridCols,
+        height: gridRows,
+        paletteMode,
+        charDensity,
+        glowIntensity: glow ? 0.9 : 0,
+      },
+      renderer.getTextOverlays()
+    );
     setAsciiData(result);
   }, [selectedFlower, paletteMode, charDensity, bloomValue, gridCols, gridRows, glow, renderer]);
 

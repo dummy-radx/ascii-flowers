@@ -22,21 +22,6 @@ export function App() {
         setIsMuted={setIsMuted}
       />
 
-      {/* Minimal Monochrome Sub-Banner */}
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-8 pt-4 pb-2">
-        <div className="bg-[#080808] border border-[#222222] rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span className="text-[#a0a0a0]">
-              Photorealistic Botanical ASCII • High-density character matrices on pitch-black canvas
-            </span>
-          </div>
-          <div className="text-[11px] text-[#666666] flex items-center gap-1.5">
-            <span>DEDICATED TO SREEPARNA</span>
-            <Heart className="w-3 h-3 fill-white text-white inline" />
-          </div>
-        </div>
-      </section>
 
       {/* Main Content Area based on Tab */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-4 flex-1">

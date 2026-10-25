@@ -56,6 +56,14 @@ export interface AsciiGridResult {
   height: number;
 }
 
+export interface AsciiTextOverlay {
+  text: string;
+  canvasX: number;
+  canvasY: number;
+  color?: string;
+  align?: 'center' | 'left' | 'right';
+}
+
 /**
  * Botanical Vector Renderer: Accurately paints flowers, bouquets, plushies, chocolates,
  * and glowing romantic ASCII banners
@@ -63,6 +71,7 @@ export interface AsciiGridResult {
 export class BotanicalCanvasRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private textOverlays: AsciiTextOverlay[] = [];
 
   constructor(width = 520, height = 640) {
     this.canvas = document.createElement('canvas');
@@ -79,8 +88,17 @@ export class BotanicalCanvasRenderer {
   }
 
   public clear() {
+    this.textOverlays = [];
     this.ctx.fillStyle = '#000000';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  public addTextOverlay(overlay: AsciiTextOverlay) {
+    this.textOverlays.push(overlay);
+  }
+
+  public getTextOverlays(): AsciiTextOverlay[] {
+    return this.textOverlays;
   }
 
   /**
@@ -428,245 +446,583 @@ export class BotanicalCanvasRenderer {
   // ==========================================
 
   /**
-   * Draw Adorable Teddy Bear Plushie hugging a blooming flower
+   * Draw Adorable Teddy Bear Plushie hugging a blooming flower with ASCII loving messages
    */
-  public drawTeddyPlushie(cx: number, cy: number, scale = 1.0) {
+  public drawTeddyPlushie(cx: number, cy: number, scale = 1.0, isLoved = false) {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(scale, scale);
 
-    // Warm fuzzy bear body
-    ctx.fillStyle = '#b45309';
-    ctx.beginPath();
-    ctx.ellipse(0, 60, 52, 60, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // 1. Floating Glowing ASCII Loving Message (Stamped directly into ASCII matrix for 100% legibility)
+    this.addTextOverlay({
+      text: '✦ CUDDLY BARNABY BEAR FOR SREEPARNA ✦',
+      canvasX: cx,
+      canvasY: cy - 165 * scale,
+      color: '#fde68a',
+      align: 'center',
+    });
+    this.addTextOverlay({
+      text: '♥ ISHAN LOVES YOU TO THE STARS & BEYOND ♥',
+      canvasX: cx,
+      canvasY: cy - 142 * scale,
+      color: '#fb7185',
+      align: 'center',
+    });
 
-    // Belly patch
+    // Ambient Starlight & Floating Hearts
+    ctx.fillStyle = '#ffffff';
+    const stars = [
+      { x: -140, y: -90, s: 2 },
+      { x: 135, y: -80, s: 2 },
+      { x: -120, y: 70, s: 1.5 },
+      { x: 125, y: 60, s: 1.5 },
+      { x: -90, y: -120, s: 2.5 },
+      { x: 90, y: -120, s: 2.5 },
+    ];
+    stars.forEach((st) => {
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.s, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 2. Bear Feet / Paws at base
+    ctx.fillStyle = '#92400e';
+    ctx.beginPath();
+    ctx.ellipse(-38, 115, 22, 16, -Math.PI / 12, 0, Math.PI * 2);
+    ctx.ellipse(38, 115, 22, 16, Math.PI / 12, 0, Math.PI * 2);
+    ctx.fill();
+    // Foot paw pads
     ctx.fillStyle = '#fde68a';
     ctx.beginPath();
-    ctx.ellipse(0, 65, 34, 40, 0, 0, Math.PI * 2);
+    ctx.ellipse(-38, 116, 11, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(38, 116, 11, 8, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Stitched Heart on Belly
-    ctx.fillStyle = '#ef4444';
-    ctx.font = 'bold 20px serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('♥ S+I', 0, 72);
-
-    // Bear Head
+    // 3. Warm Fuzzy Bear Body
     ctx.fillStyle = '#b45309';
     ctx.beginPath();
-    ctx.arc(0, -10, 48, 0, Math.PI * 2);
+    ctx.ellipse(0, 55, 56, 64, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Round Ears with pink inner felt
+    // 4. Belly Patch with Stitched Heart Monogram
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath();
+    ctx.ellipse(0, 62, 36, 42, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stitched Border on Belly
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.ellipse(0, 62, 34, 40, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Stitched Heart & Initials on Belly: ♥ S+I (Direct ASCII Matrix Stamp)
+    this.addTextOverlay({
+      text: '♥ S+I',
+      canvasX: cx,
+      canvasY: cy + 62 * scale,
+      color: '#ef4444',
+      align: 'center',
+    });
+
+    // 5. Bear Head
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.arc(0, -18, 52, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 6. Round Ears with pink inner felt & stitched edge
     // Left ear
     ctx.beginPath();
-    ctx.arc(-42, -45, 20, 0, Math.PI * 2);
+    ctx.arc(-45, -55, 22, 0, Math.PI * 2);
     ctx.fillStyle = '#b45309';
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(-42, -45, 12, 0, Math.PI * 2);
+    ctx.arc(-45, -55, 13, 0, Math.PI * 2);
     ctx.fillStyle = '#fbcfe8';
     ctx.fill();
+    ctx.strokeStyle = '#f472b6';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([2, 2]);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
     // Right ear
     ctx.beginPath();
-    ctx.arc(42, -45, 20, 0, Math.PI * 2);
+    ctx.arc(45, -55, 22, 0, Math.PI * 2);
     ctx.fillStyle = '#b45309';
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(42, -45, 12, 0, Math.PI * 2);
+    ctx.arc(45, -55, 13, 0, Math.PI * 2);
     ctx.fillStyle = '#fbcfe8';
     ctx.fill();
-
-    // Snout / Muzzle
-    ctx.fillStyle = '#fde68a';
-    ctx.beginPath();
-    ctx.ellipse(0, 2, 24, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Nose & Smile
-    ctx.fillStyle = '#451a03';
-    ctx.beginPath();
-    ctx.arc(0, -3, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#451a03';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(0, 4);
-    ctx.lineTo(0, 10);
-    ctx.moveTo(-8, 10);
-    ctx.quadraticCurveTo(0, 15, 8, 10);
+    ctx.strokeStyle = '#f472b6';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([2, 2]);
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    // Glossy Button Eyes with sparkles
-    ctx.fillStyle = '#1c1917';
+    // 7. Snout / Muzzle
+    ctx.fillStyle = '#fef3c7';
     ctx.beginPath();
-    ctx.arc(-18, -15, 6, 0, Math.PI * 2);
-    ctx.arc(18, -15, 6, 0, Math.PI * 2);
+    ctx.ellipse(0, -6, 26, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Polished Black Button Nose with Highlight
+    ctx.fillStyle = '#291307';
+    ctx.beginPath();
+    ctx.ellipse(0, -12, 9, 7, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(-20, -17, 2, 0, Math.PI * 2);
-    ctx.arc(16, -17, 2, 0, Math.PI * 2);
+    ctx.arc(-3, -14, 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Blush Cheeks
+    // Stitched Smile & Muzzle Seam
+    ctx.strokeStyle = '#451a03';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
+    ctx.lineTo(0, 3);
+    ctx.moveTo(-10, 3);
+    ctx.quadraticCurveTo(0, 10, 10, 3);
+    ctx.stroke();
+
+    // 8. Glossy Button Safety Eyes with Sparkle Highlights
+    ctx.fillStyle = '#1c1917';
+    ctx.beginPath();
+    ctx.arc(-20, -22, 7, 0, Math.PI * 2);
+    ctx.arc(20, -22, 7, 0, Math.PI * 2);
+    ctx.fill();
+    // Double Catchlights
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-22, -24, 2.5, 0, Math.PI * 2);
+    ctx.arc(18, -24, 2.5, 0, Math.PI * 2);
+    ctx.arc(-18, -20, 1.2, 0, Math.PI * 2);
+    ctx.arc(22, -20, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 9. Soft Rosy Blush Cheeks with Freckle Dots
     ctx.fillStyle = '#fda4af';
     ctx.beginPath();
-    ctx.arc(-28, -2, 8, 0, Math.PI * 2);
-    ctx.arc(28, -2, 8, 0, Math.PI * 2);
+    ctx.arc(-30, -7, 9, 0, Math.PI * 2);
+    ctx.arc(30, -7, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.arc(-32, -8, 1, 0, Math.PI * 2);
+    ctx.arc(-28, -6, 1, 0, Math.PI * 2);
+    ctx.arc(28, -6, 1, 0, Math.PI * 2);
+    ctx.arc(32, -8, 1, 0, Math.PI * 2);
     ctx.fill();
 
-    // Plushie Paws hugging a glowing sunflower
+    // 10. Crimson Satin Bowtie at Neck with Gold Center Knot
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+    ctx.lineTo(-24, 7);
+    ctx.lineTo(-24, 23);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+    ctx.lineTo(24, 7);
+    ctx.lineTo(24, 23);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    ctx.arc(0, 15, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 11. Plushie Arms & Paws Hugging Blooming Golden Sunflower
     ctx.fillStyle = '#92400e';
     ctx.beginPath();
-    ctx.ellipse(-48, 55, 18, 14, Math.PI / 4, 0, Math.PI * 2);
-    ctx.ellipse(48, 55, 18, 14, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(-52, 48, 20, 15, Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(52, 48, 20, 15, -Math.PI / 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Hugged Sunflower
-    this.drawSunflower(0, 50, 0.55, 1.0);
+    // Hugged Golden Sunflower in center
+    this.drawSunflower(0, 48, 0.58, 1.0);
+
+    if (isLoved) {
+      this.addTextOverlay({
+        text: '♥ HUGGED WITH LOVE ♥',
+        canvasX: cx,
+        canvasY: cy + 142 * scale,
+        color: '#fb7185',
+        align: 'center',
+      });
+    }
 
     ctx.restore();
   }
 
   /**
-   * Draw Luxury Heart-Shaped Box of Chocolates & Pralines with Ribbon
+   * Draw Luxury Heart-Shaped Box of Artisan Belgian Chocolates with Ribbon & Monogram
    */
-  public drawChocolateBox(cx: number, cy: number, scale = 1.0) {
+  public drawChocolateBox(cx: number, cy: number, scale = 1.0, isTasted = false) {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(scale, scale);
 
-    // Heart Box Outer Rim (Rich Velvet Red & Gold Trim)
-    ctx.save();
-    ctx.fillStyle = '#991b1b';
+    // 1. Floating Glowing ASCII Loving Message (Stamped directly into ASCII matrix)
+    this.addTextOverlay({
+      text: '✦ BELGIAN ARTISAN TRUFFLES FOR SREEPARNA ✦',
+      canvasX: cx,
+      canvasY: cy - 170 * scale,
+      color: '#fef08a',
+      align: 'center',
+    });
+    this.addTextOverlay({
+      text: '♥ SWEETER THAN A THOUSAND CHOCOLATES ♥',
+      canvasX: cx,
+      canvasY: cy - 148 * scale,
+      color: '#fb7185',
+      align: 'center',
+    });
+
+    // Ambient chocolate sparkle glints
+    ctx.fillStyle = '#fde047';
+    [
+      { x: -130, y: -100 },
+      { x: 130, y: -90 },
+      { x: -110, y: 50 },
+      { x: 115, y: 45 },
+    ].forEach((p) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 2. Heart Box Shadow & Base
+    ctx.fillStyle = '#4c0519';
     ctx.beginPath();
-    ctx.moveTo(0, 30);
-    ctx.bezierCurveTo(-110, -70, -70, -140, 0, -80);
-    ctx.bezierCurveTo(70, -140, 110, -70, 0, 30);
+    ctx.moveTo(0, 46);
+    ctx.bezierCurveTo(-125, -60, -80, -145, 0, -80);
+    ctx.bezierCurveTo(80, -145, 125, -60, 0, 46);
     ctx.fill();
 
-    // Gold filigree edge
+    // 3. Heart Box Rim (Luxurious Deep Crimson Velvet)
+    ctx.fillStyle = '#991b1b';
+    ctx.beginPath();
+    ctx.moveTo(0, 36);
+    ctx.bezierCurveTo(-118, -66, -74, -138, 0, -76);
+    ctx.bezierCurveTo(74, -138, 118, -66, 0, 36);
+    ctx.fill();
+
+    // 4. Gold Scalloped Filigree Trim Edge
     ctx.strokeStyle = '#facc15';
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // Inner Chocolate Tray
-    ctx.fillStyle = '#451a03';
-    ctx.beginPath();
-    ctx.moveTo(0, 20);
-    ctx.bezierCurveTo(-95, -60, -60, -125, 0, -75);
-    ctx.bezierCurveTo(60, -125, 95, -60, 0, 20);
-    ctx.fill();
-    ctx.restore();
+    // Beaded Gold Pearls along rim
+    ctx.fillStyle = '#fef08a';
+    for (let t = 0; t < Math.PI * 2; t += 0.22) {
+      const bx = 16 * Math.pow(Math.sin(t), 3) * 6.3;
+      const by = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 5.6 - 45;
+      ctx.beginPath();
+      ctx.arc(bx, by, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    // Assorted Artisan Chocolates inside
+    // 5. Inner Velvet Chocolate Compartment Tray
+    ctx.fillStyle = '#291307';
+    ctx.beginPath();
+    ctx.moveTo(0, 24);
+    ctx.bezierCurveTo(-98, -55, -62, -120, 0, -68);
+    ctx.bezierCurveTo(62, -120, 98, -55, 0, 24);
+    ctx.fill();
+
+    // 6. 9 Gourmet Artisan Chocolates Arranged Harmoniously
     const chocolates = [
-      { x: -35, y: -70, type: 'dark_truffle', col: '#291307', deco: '#f59e0b' },
-      { x: 35, y: -70, type: 'white_pearl', col: '#f8fafc', deco: '#ec4899' },
-      { x: 0, y: -50, type: 'heart_ruby', col: '#dc2626', deco: '#ffffff' },
-      { x: -45, y: -30, type: 'hazelnut', col: '#78350f', deco: '#fde047' },
-      { x: 45, y: -30, type: 'pistachio', col: '#15803d', deco: '#ffffff' },
-      { x: 0, y: -15, type: 'caramel_gold', col: '#d97706', deco: '#fef08a' },
-      { x: 0, y: 10, type: 'mini_rose', col: '#f43f5e', deco: '#ffffff' },
+      // Centerpiece: Ruby Chocolate Heart with Gold Leaf & S+I Monogram
+      { x: 0, y: -45, r: 18, type: 'ruby_monogram', col: '#e11d48', deco: '#fef08a', text: 'S+I' },
+      // Top row
+      { x: -40, y: -72, r: 13, type: 'dark_gold', col: '#1c1917', deco: '#fbbf24', text: '✦' },
+      { x: 40, y: -72, r: 13, type: 'white_raspberry', col: '#f8fafc', deco: '#f43f5e', text: '❀' },
+      // Middle row
+      { x: -52, y: -28, r: 13, type: 'hazelnut_crunch', col: '#78350f', deco: '#fde047', text: '●' },
+      { x: 52, y: -28, r: 13, type: 'pistachio_matcha', col: '#166534', deco: '#ffffff', text: '◆' },
+      // Center Lower
+      { x: 0, y: -10, r: 14, type: 'caramel_salted', col: '#b45309', deco: '#fef3c7', text: '★' },
+      // Lower row
+      { x: -28, y: 10, r: 12, type: 'espresso_truffle', col: '#3e1f0e', deco: '#ca8a04', text: '✦' },
+      { x: 28, y: 10, r: 12, type: 'rose_petal', col: '#fb7185', deco: '#ffffff', text: '♥' },
+      // Bottom Tip praline
+      { x: 0, y: 22, r: 9, type: 'gold_pearl', col: '#d97706', deco: '#fef08a', text: '•' },
     ];
 
     chocolates.forEach((c) => {
+      // Golden fluted paper baking cup
       ctx.beginPath();
-      ctx.arc(c.x, c.y, 14, 0, Math.PI * 2);
+      ctx.arc(c.x, c.y, c.r + 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#451a03';
+      ctx.fill();
+      ctx.strokeStyle = '#ca8a04';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Chocolate Body
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
       ctx.fillStyle = c.col;
       ctx.fill();
       ctx.strokeStyle = '#facc15';
       ctx.lineWidth = 1.2;
       ctx.stroke();
 
-      // Drizzle / Glaze decoration
-      ctx.strokeStyle = c.deco;
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(c.x - 8, c.y - 4);
-      ctx.quadraticCurveTo(c.x, c.y - 8, c.x + 8, c.y - 4);
-      ctx.moveTo(c.x - 6, c.y + 4);
-      ctx.quadraticCurveTo(c.x, c.y + 8, c.x + 6, c.y + 4);
-      ctx.stroke();
+      // Decorative Swirl & Monogram
+      if (c.text === 'S+I') {
+        this.addTextOverlay({
+          text: 'S+I',
+          canvasX: cx + c.x * scale,
+          canvasY: cy + c.y * scale,
+          color: '#fef08a',
+          align: 'center',
+        });
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = c.deco;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(c.x - c.r * 0.5, c.y - 2);
+        ctx.quadraticCurveTo(c.x, c.y - 6, c.x + c.r * 0.5, c.y - 2);
+        ctx.moveTo(c.x - c.r * 0.4, c.y + 3);
+        ctx.quadraticCurveTo(c.x, c.y + 6, c.x + c.r * 0.4, c.y + 3);
+        ctx.stroke();
+      }
     });
 
-    // Satin Ribbon Bow over the top corner
+    // 7. Rich Red Silk Ribbon Tied in an Elaborate Corner Bow with Tails
+    ctx.fillStyle = '#be123c';
+    // Ribbon tails
+    ctx.beginPath();
+    ctx.moveTo(-60, -110);
+    ctx.bezierCurveTo(-90, -80, -95, -40, -85, -20);
+    ctx.lineTo(-76, -24);
+    ctx.bezierCurveTo(-85, -45, -80, -80, -55, -105);
+    ctx.fill();
+
+    // Ribbon loops
     ctx.fillStyle = '#e11d48';
     ctx.beginPath();
-    ctx.ellipse(-50, -100, 26, 12, -Math.PI / 6, 0, Math.PI * 2);
-    ctx.ellipse(-15, -115, 26, 12, Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(-65, -125, 30, 14, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(-25, -140, 30, 14, Math.PI / 6, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#be123c';
+
+    // Gold ribbon trim line
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(-32, -108, 9, 0, Math.PI * 2);
+    ctx.arc(-45, -132, 12, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Center Ribbon Knot
+    ctx.fillStyle = '#9f1239';
+    ctx.beginPath();
+    ctx.arc(-45, -132, 11, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(-45, -132, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (isTasted) {
+      this.addTextOverlay({
+        text: '✦ TASTED • MELTING WITH SWEETNESS ✦',
+        canvasX: cx,
+        canvasY: cy + 68 * scale,
+        color: '#fef08a',
+        align: 'center',
+      });
+    }
 
     ctx.restore();
   }
 
   /**
-   * Draw Golden Filigree Heart Locket engraved with S+I
+   * Draw Golden Filigree Heart Locket engraved with Prominent Initials "S ♥ I" and loving message
    */
-  public drawHeartLocket(cx: number, cy: number, scale = 1.0) {
+  public drawHeartLocket(cx: number, cy: number, scale = 1.0, isOpened = false) {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(scale, scale);
 
-    // Delicate Necklace Chain in ASCII dots
+    // 1. Floating Glowing ASCII Loving Message (Stamped directly into ASCII matrix)
+    this.addTextOverlay({
+      text: '✦ HEIRLOOM GOLDEN LOCKET • S ♥ I ✦',
+      canvasX: cx,
+      canvasY: cy - 175 * scale,
+      color: '#fef08a',
+      align: 'center',
+    });
+    this.addTextOverlay({
+      text: '♥ S ♥ I — MY HEART IS LOCKED WITH YOURS FOREVER ♥',
+      canvasX: cx,
+      canvasY: cy - 152 * scale,
+      color: '#fb7185',
+      align: 'center',
+    });
+
+    // Ambient Starlight Glints
+    ctx.fillStyle = '#ffffff';
+    [
+      { x: -120, y: -100, s: 2 },
+      { x: 120, y: -90, s: 2 },
+      { x: -100, y: 40, s: 1.5 },
+      { x: 105, y: 45, s: 1.5 },
+      { x: 0, y: -80, s: 2.5 },
+    ].forEach((p) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 2. Delicate Woven Golden Double Necklace Chain
     ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([3, 4]);
+    ctx.lineWidth = 2.2;
+    ctx.setLineDash([4, 3]);
+    // Outer chain drape
     ctx.beginPath();
-    ctx.moveTo(-80, -160);
-    ctx.quadraticCurveTo(0, -60, 0, -30);
-    ctx.moveTo(80, -160);
-    ctx.quadraticCurveTo(0, -60, 0, -30);
+    ctx.moveTo(-90, -170);
+    ctx.quadraticCurveTo(-20, -70, 0, -42);
+    ctx.moveTo(90, -170);
+    ctx.quadraticCurveTo(20, -70, 0, -42);
+    ctx.stroke();
+    // Inner secondary chain drape
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.moveTo(-75, -170);
+    ctx.quadraticCurveTo(-15, -60, 0, -42);
+    ctx.moveTo(75, -170);
+    ctx.quadraticCurveTo(15, -60, 0, -42);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Golden Heart Locket Case
+    // 3. Ornate Locket Bail Loop (Connector to necklace)
+    ctx.fillStyle = '#eab308';
+    ctx.beginPath();
+    ctx.ellipse(0, -44, 9, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Diamond sparkle on bail
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, -44, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Solid Gold Heart Locket Case (High-contrast burnished gold)
+    // Outer Drop Shadow for 3D depth
+    ctx.fillStyle = '#713f12';
+    ctx.beginPath();
+    ctx.moveTo(0, 76);
+    ctx.bezierCurveTo(-110, -15, -72, -88, 0, -32);
+    ctx.bezierCurveTo(72, -88, 110, -15, 0, 76);
+    ctx.fill();
+
+    // Main Polished 24k Gold Heart Body
     ctx.fillStyle = '#eab308';
     ctx.beginPath();
     ctx.moveTo(0, 70);
-    ctx.bezierCurveTo(-100, -20, -65, -80, 0, -30);
-    ctx.bezierCurveTo(65, -80, 100, -20, 0, 70);
+    ctx.bezierCurveTo(-105, -20, -68, -84, 0, -36);
+    ctx.bezierCurveTo(68, -84, 105, -20, 0, 70);
     ctx.fill();
 
-    // Inner embossed filigree border
+    // 5. Beaded Filigree Perimeter (Golden Pearls around heart)
+    ctx.fillStyle = '#fef08a';
+    for (let t = 0; t < Math.PI * 2; t += 0.2) {
+      const hx = 16 * Math.pow(Math.sin(t), 3) * 5.6;
+      const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 4.9 - 7;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 6. Raised Inner Filigree Border with Victorian Scrollwork
     ctx.strokeStyle = '#ca8a04';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(0, 56);
-    ctx.bezierCurveTo(-82, -15, -52, -65, 0, -25);
-    ctx.bezierCurveTo(52, -65, 82, -15, 0, 56);
+    ctx.moveTo(0, 58);
+    ctx.bezierCurveTo(-86, -15, -54, -68, 0, -28);
+    ctx.bezierCurveTo(54, -68, 86, -15, 0, 58);
     ctx.stroke();
 
-    // Engraved Monogram: SREEPARNA ♥ ISHAN
-    ctx.fillStyle = '#78350f';
-    ctx.font = 'bold 15px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('SREEPARNA', 0, 0);
-    ctx.fillStyle = '#dc2626';
-    ctx.fillText('♥', 0, 16);
-    ctx.fillStyle = '#78350f';
-    ctx.fillText('ISHAN', 0, 32);
-
-    // Starlight reflections
-    ctx.fillStyle = '#ffffff';
+    // 7. Central Heart Medallion (Royal Velvet Inset)
+    ctx.fillStyle = '#831843'; // Deep romantic ruby
     ctx.beginPath();
-    ctx.arc(-35, -35, 3.5, 0, Math.PI * 2);
-    ctx.arc(38, -10, 2.5, 0, Math.PI * 2);
+    ctx.moveTo(0, 50);
+    ctx.bezierCurveTo(-72, -10, -45, -56, 0, -22);
+    ctx.bezierCurveTo(45, -56, 72, -10, 0, 50);
     ctx.fill();
+
+    // Gold inner border for medallion
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 8. PROMINENT ENGRAVED INITIALS: S ♥ I (Direct ASCII Matrix Stamp)
+    if (!isOpened) {
+      this.addTextOverlay({
+        text: 'S ♥ I',
+        canvasX: cx,
+        canvasY: cy - 1 * scale,
+        color: '#fef08a',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: 'SREEPARNA ♥ ISHAN',
+        canvasX: cx,
+        canvasY: cy + 24 * scale,
+        color: '#fef08a',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: 'EST. FOREVER',
+        canvasX: cx,
+        canvasY: cy + 36 * scale,
+        color: '#fcd34d',
+        align: 'center',
+      });
+    } else {
+      this.addTextOverlay({
+        text: 'SREEPARNA ♥ ISHAN',
+        canvasX: cx,
+        canvasY: cy + 18 * scale,
+        color: '#fef08a',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: 'EST. FOREVER',
+        canvasX: cx,
+        canvasY: cy + 32 * scale,
+        color: '#fcd34d',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: '✨ LOCKET OPENED • TWO SOULS AS ONE ✨',
+        canvasX: cx,
+        canvasY: cy + 96 * scale,
+        color: '#fef08a',
+        align: 'center',
+      });
+    }
 
     ctx.restore();
   }
+
 
   /**
    * The Master Bouquet Composition:
@@ -686,21 +1042,20 @@ export class BotanicalCanvasRenderer {
     // 1. Floating Animated Romantic Typography (e.g. "I LOVE YOU SREEPARNA")
     const msg = comp.floatingMessage || 'I LOVE YOU SREEPARNA';
     if (msg.trim().length > 0) {
-      ctx.save();
-      ctx.font = 'bold 22px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-
-      // Soft starlight glow for text
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(`✦ ${msg.toUpperCase()} ✦`, cx, 48);
-
-      // Sub-caption
-      ctx.font = '12px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('♥ Forever Blooming in Starlight ♥', cx, 70);
-      ctx.restore();
+      this.addTextOverlay({
+        text: `✦ ${msg.toUpperCase()} ✦`,
+        canvasX: cx,
+        canvasY: 48,
+        color: '#ffffff',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: '♥ Forever Blooming in Starlight ♥',
+        canvasX: cx,
+        canvasY: 70,
+        color: '#94a3b8',
+        align: 'center',
+      });
     }
 
     // 2. Background Stardust Particle Spray
@@ -833,12 +1188,36 @@ export class BotanicalCanvasRenderer {
   }
 }
 
+function parseHexColor(colorStr?: string): { r: number; g: number; b: number } {
+  if (!colorStr) return { r: 255, g: 255, b: 255 };
+  if (colorStr.startsWith('#')) {
+    const hex = colorStr.slice(1);
+    if (hex.length === 3) {
+      return {
+        r: parseInt(hex[0] + hex[0], 16),
+        g: parseInt(hex[1] + hex[1], 16),
+        b: parseInt(hex[2] + hex[2], 16),
+      };
+    }
+    if (hex.length >= 6) {
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16),
+      };
+    }
+  }
+  return { r: 255, g: 255, b: 255 };
+}
+
 /**
  * High-Density Rasterizer: Converts the high-resolution vector canvas into fine-pixel ASCII
+ * and stamps crystal-clear, legible typography overlays directly into the character matrix
  */
 export function rasterizeBouquet(
   sourceCanvas: HTMLCanvasElement,
-  options: RenderOptions
+  options: RenderOptions,
+  overlays?: AsciiTextOverlay[]
 ): AsciiGridResult {
   const { width, height, paletteMode, charDensity } = options;
   const ramp = RAMPS[charDensity] || RAMPS.scanline;
@@ -854,11 +1233,9 @@ export function rasterizeBouquet(
   const data = imgData.data;
 
   const grid: AsciiCell[][] = [];
-  const textLines: string[] = [];
 
   for (let y = 0; y < height; y++) {
     const row: AsciiCell[] = [];
-    let textLine = '';
 
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
@@ -903,15 +1280,87 @@ export function rasterizeBouquet(
         g = Math.floor(115 * brightness);
         b = Math.floor(255 * brightness);
       }
-      // If 'reference', retain the exact authentic RGB colors from the bouquet drawing!
 
       row.push({ char, r, g, b, a, brightness });
-      textLine += char;
     }
 
     grid.push(row);
-    textLines.push(textLine);
   }
+
+  // Stamp Text Overlays directly into character matrix for 100% crisp legibility
+  if (overlays && overlays.length > 0) {
+    for (const overlay of overlays) {
+      if (!overlay.text) continue;
+
+      const gridY = Math.max(
+        0,
+        Math.min(height - 1, Math.round((overlay.canvasY / sourceCanvas.height) * height))
+      );
+      const gridX = Math.max(
+        0,
+        Math.min(width - 1, Math.round((overlay.canvasX / sourceCanvas.width) * width))
+      );
+
+      const align = overlay.align || 'center';
+      const textLen = overlay.text.length;
+      let startX = gridX;
+      if (align === 'center') {
+        startX = Math.round(gridX - textLen / 2);
+      } else if (align === 'right') {
+        startX = gridX - textLen;
+      }
+
+      // Palette styling for text
+      let { r, g, b } = parseHexColor(overlay.color);
+      if (paletteMode === 'monochrome') {
+        r = 255;
+        g = 255;
+        b = 255;
+      } else if (paletteMode === 'emerald') {
+        if (overlay.color?.includes('fde68a') || overlay.color?.includes('fef08a') || overlay.color?.includes('ffffff')) {
+          r = 255;
+          g = 245;
+          b = 160;
+        } else {
+          r = 52;
+          g = 211;
+          b = 153;
+        }
+      } else if (paletteMode === 'amber') {
+        r = 254;
+        g = 240;
+        b = 138;
+      } else if (paletteMode === 'amethyst') {
+        r = 233;
+        g = 213;
+        b = 255;
+      }
+
+      // Clear adjacent padding spaces so no scanlines clip through the text
+      if (startX - 1 >= 0 && startX - 1 < width && grid[gridY]) {
+        grid[gridY][startX - 1] = { char: ' ', r: 0, g: 0, b: 0, a: 0, brightness: 0 };
+      }
+      if (startX + textLen >= 0 && startX + textLen < width && grid[gridY]) {
+        grid[gridY][startX + textLen] = { char: ' ', r: 0, g: 0, b: 0, a: 0, brightness: 0 };
+      }
+
+      for (let i = 0; i < textLen; i++) {
+        const x = startX + i;
+        if (x >= 0 && x < width && grid[gridY]) {
+          grid[gridY][x] = {
+            char: overlay.text[i],
+            r,
+            g,
+            b,
+            a: 1.0,
+            brightness: 1.0,
+          };
+        }
+      }
+    }
+  }
+
+  const textLines = grid.map((row) => row.map((cell) => cell.char).join(''));
 
   return {
     grid,

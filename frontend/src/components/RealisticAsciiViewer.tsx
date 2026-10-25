@@ -39,18 +39,14 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.font = `bold ${Math.floor(8.5 * zoom)}px "JetBrains Mono", "Space Mono", monospace`;
+    ctx.imageSmoothingEnabled = true;
+    const fontSize = Math.max(8, Math.round(8.6 * zoom));
+    ctx.font = `bold ${fontSize}px "JetBrains Mono", "Space Mono", monospace`;
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
 
     const grid = asciiData.grid;
-
-    // First pass: optional soft bloom glow
-    if (glow && paletteMode !== 'monochrome') {
-      ctx.shadowBlur = 6 * zoom;
-    } else {
-      ctx.shadowBlur = 0;
-    }
+    const isMonochrome = paletteMode === 'monochrome';
 
     for (let y = 0; y < asciiData.height; y++) {
       const row = grid[y];
@@ -65,8 +61,13 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
         const colorStr = `rgb(${cell.r}, ${cell.g}, ${cell.b})`;
 
         ctx.fillStyle = colorStr;
-        if (glow) {
+        if (glow && !isMonochrome) {
           ctx.shadowColor = colorStr;
+          // Alphanumeric text & symbols get subtle sharp glow, scanlines get rich bloom
+          const isTextGlyph = /[a-zA-Z0-9✦♥✨•+*]/.test(cell.char);
+          ctx.shadowBlur = isTextGlyph ? 2 * zoom : 6 * zoom;
+        } else {
+          ctx.shadowBlur = 0;
         }
 
         ctx.fillText(cell.char, posX, posY);

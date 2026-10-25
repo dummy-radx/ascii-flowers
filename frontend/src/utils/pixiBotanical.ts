@@ -61,11 +61,13 @@ export class PixiBotanicalEngine {
 
     this.mainContainer.addChild(this.particlesContainer);
     this.mainContainer.addChild(this.bouquetContainer);
-    this.mainContainer.addChild(this.textContainer);
 
-    // Apply PixiJS AsciiFilter to the mainContainer
+    // Apply PixiJS AsciiFilter to flowers and particles only
     this.mainContainer.filters = [this.asciiFilter];
     this.app.stage.addChild(this.mainContainer);
+
+    // Mount textContainer directly on app.stage ABOVE the filter for razor-sharp typography
+    this.app.stage.addChild(this.textContainer);
 
     // Init stardust particles
     for (let i = 0; i < 65; i++) {
@@ -474,12 +476,54 @@ export class PixiBotanicalEngine {
     const cy = this.app.screen.height * 0.46;
     const g = new Graphics();
 
+    let titleText = '';
+    let subText = '';
+    let titleColor = 0xfde68a;
+
     if (giftType === 'teddy') {
       this.drawVectorTeddy(g, cx, cy, 1.2);
+      titleText = '✦ CUDDLY BARNABY BEAR FOR SREEPARNA ✦';
+      subText = '♥ ISHAN LOVES YOU TO THE STARS & BEYOND ♥';
+      titleColor = 0xfde68a;
     } else if (giftType === 'chocolates') {
       this.drawVectorChocolates(g, cx, cy + 20, 1.25);
+      titleText = '✦ BELGIAN ARTISAN TRUFFLES FOR SREEPARNA ✦';
+      subText = '♥ SWEETER THAN A THOUSAND CHOCOLATES ♥';
+      titleColor = 0xfef08a;
     } else if (giftType === 'locket') {
       this.drawVectorLocket(g, cx, cy + 20, 1.2);
+      titleText = '✦ HEIRLOOM GOLDEN LOCKET • S ♥ I ✦';
+      subText = '♥ S ♥ I — MY HEART IS LOCKED WITH YOURS FOREVER ♥';
+      titleColor = 0xfef08a;
+    }
+
+    if (titleText) {
+      const titleStyle = new TextStyle({
+        fontFamily: '"JetBrains Mono", monospace',
+        fontSize: 18,
+        fontWeight: 'bold',
+        fill: titleColor,
+        letterSpacing: 1.5,
+        align: 'center',
+      });
+      const subStyle = new TextStyle({
+        fontFamily: '"JetBrains Mono", monospace',
+        fontSize: 11.5,
+        fill: 0xfb7185,
+        letterSpacing: 1,
+        align: 'center',
+      });
+
+      const title = new Text({ text: titleText, style: titleStyle });
+      title.anchor.set(0.5);
+      title.position.set(cx, 48);
+
+      const subtitle = new Text({ text: subText, style: subStyle });
+      subtitle.anchor.set(0.5);
+      subtitle.position.set(cx, 74);
+
+      this.textContainer.addChild(title);
+      this.textContainer.addChild(subtitle);
     }
 
     this.bouquetContainer.addChild(g);
@@ -555,14 +599,23 @@ export class PixiBotanicalEngine {
     g.quadraticCurveTo(cx, cy - 60 * scale, cx, cy - 30 * scale);
     g.stroke({ color: 0xfbbf24, width: 2 * scale });
 
-    // Gold Heart Locket
+    // Gold Heart Locket Case
     g.beginPath();
     g.moveTo(cx, cy + 70 * scale);
     g.bezierCurveTo(cx - 100 * scale, cy - 20 * scale, cx - 65 * scale, cy - 80 * scale, cx, cy - 30 * scale);
     g.bezierCurveTo(cx + 65 * scale, cy - 80 * scale, cx + 100 * scale, cy - 20 * scale, cx, cy + 70 * scale);
     g.closePath();
     g.fill({ color: 0xeab308 });
-    g.stroke({ color: 0xca8a04, width: 3 * scale });
+    g.stroke({ color: 0xca8a04, width: 3.5 * scale });
+
+    // Inner Ruby Medallion
+    g.beginPath();
+    g.moveTo(cx, cy + 48 * scale);
+    g.bezierCurveTo(cx - 68 * scale, cy - 10 * scale, cx - 44 * scale, cy - 54 * scale, cx, cy - 20 * scale);
+    g.bezierCurveTo(cx + 44 * scale, cy - 54 * scale, cx + 68 * scale, cy - 10 * scale, cx, cy + 48 * scale);
+    g.closePath();
+    g.fill({ color: 0x831843 });
+    g.stroke({ color: 0xfacc15, width: 2 * scale });
   }
 
   public destroy() {
