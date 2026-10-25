@@ -1,4 +1,4 @@
-import { FlowerData, BouquetWrapper } from '../types';
+import type { FlowerData } from '../types';
 import { FLOWERS, WRAPPERS } from './flowers';
 
 export interface BouquetConfig {
@@ -144,7 +144,9 @@ export function generateMixedBouquet(config: BouquetConfig): {
 
   // 4. Accent & Baby's Breath fillers
   lines.push(
-    '<forgetmenot>   * . </forgetmenot><leaf>\\~--._</leaf><stem>||</stem><leaf>_.--~/</leaf><orchid> ° ｡ </orchid><leaf>\\~--._</leaf><stem>||</stem><leaf>_.--~/</leaf><forgetmenot> . *   </forgetmenot>'
+    (hasOrchid ? '<orchid>  _.._  </orchid>' : '<forgetmenot>   * . </forgetmenot>') +
+    '<leaf>\\~--._</leaf><stem>||</stem><leaf>_.--~/</leaf><orchid> ° ｡ </orchid><leaf>\\~--._</leaf><stem>||</stem><leaf>_.--~/</leaf>' +
+    (hasOrchid ? '<orchid>  _.._  </orchid>' : '<forgetmenot> . *   </forgetmenot>')
   );
   lines.push(
     '<leaf>    \\__  \\\\//  __//     \\\\__  \\\\//  __//     </leaf>'

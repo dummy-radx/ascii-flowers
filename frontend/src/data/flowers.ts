@@ -1,4 +1,4 @@
-import { FlowerData, BouquetWrapper } from '../types';
+import type { FlowerData, BouquetWrapper } from '../types';
 
 export const FLOWERS: FlowerData[] = [
   {
