@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'JetBrains Mono', 'Space Mono', monospace;
+    background-color: #0d0f18;
+    color: #e2e8f0;
+  }
+}
+
+/* Custom ASCII Preformatted Blocks */
+pre.ascii-art {
+  font-family: 'JetBrains Mono', 'Space Mono', 'Courier New', monospace;
+  line-height: 1.18;
+  letter-spacing: 0.04em;
+  font-variant-ligatures: none;
+  text-rendering: geometricPrecision;
+  user-select: text;
+}
+
+/* Custom cute animations */
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.4));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(244, 114, 182, 0.8));
+  }
+}
+
+@keyframes float-petal {
+  0% {
+    transform: translate(0, -10px) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(60px, 100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-sway {
+  animation: sway 3.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+/* Custom Scrollbar for retro cyber-cute vibe */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #121526;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f472b6;
+}
