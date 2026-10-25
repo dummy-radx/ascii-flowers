@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
 import {
   BotanicalCanvasRenderer,
   rasterizeBouquet,
@@ -14,6 +15,10 @@ export const SoloSpecimens: React.FC = () => {
   const [selectedFlower, setSelectedFlower] = useState<SoloFlower>('lily');
   const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('emerald');
   const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('matrix');
+  const [bloomValue, setBloomValue] = useState<number>(1.0);
+  const [isBlooming, setIsBlooming] = useState<boolean>(false);
+  const animationFrameRef = useRef<number | null>(null);
+
   const gridCols = 150;
   const gridRows = 85;
   const glow = true;
@@ -27,15 +32,15 @@ export const SoloSpecimens: React.FC = () => {
     const cy = 230;
 
     if (selectedFlower === 'lily') {
-      renderer.drawLily(cx, cy, 1.25, 0, '#ffffff', '#94a3b8', '#facc15', true);
+      renderer.drawLily(cx, cy, 1.25, 0, '#ffffff', '#94a3b8', '#facc15', true, bloomValue);
     } else if (selectedFlower === 'sunflower') {
-      renderer.drawSunflower(cx, cy + 20, 1.15);
+      renderer.drawSunflower(cx, cy + 20, 1.15, bloomValue);
     } else if (selectedFlower === 'tulip') {
-      renderer.drawTulip(cx, cy + 50, 1.2);
+      renderer.drawTulip(cx, cy + 50, 1.2, '#fef08a', 140, bloomValue);
     } else if (selectedFlower === 'daisy') {
-      renderer.drawDaisy(cx, cy + 30, 1.2);
+      renderer.drawDaisy(cx, cy + 30, 1.2, bloomValue);
     } else if (selectedFlower === 'lavender') {
-      renderer.drawLavender(cx, cy + 80, 1.3);
+      renderer.drawLavender(cx, cy + 80, 1.3, '#c084fc', 160, bloomValue);
     }
 
     const result = rasterizeBouquet(renderer.getCanvas(), {
@@ -46,7 +51,40 @@ export const SoloSpecimens: React.FC = () => {
       glowIntensity: glow ? 0.9 : 0,
     });
     setAsciiData(result);
-  }, [selectedFlower, paletteMode, charDensity, gridCols, gridRows, glow, renderer]);
+  }, [selectedFlower, paletteMode, charDensity, bloomValue, gridCols, gridRows, glow, renderer]);
+
+  const startBloomAnimation = () => {
+    if (isBlooming) {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      setIsBlooming(false);
+      return;
+    }
+
+    setIsBlooming(true);
+    setBloomValue(0.05);
+    soundSynth.playBloom(0);
+
+    let progress = 0.05;
+    const startTime = performance.now();
+    const duration = 2800;
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      progress = Math.min(1.0, 0.05 + (elapsed / duration) * 0.95);
+      setBloomValue(progress);
+
+      if (Math.abs(progress - 0.5) < 0.02) soundSynth.playBloom(2);
+
+      if (progress < 1.0) {
+        animationFrameRef.current = requestAnimationFrame(step);
+      } else {
+        setIsBlooming(false);
+        soundSynth.playCelebration();
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(step);
+  };
 
   const specimens = [
     {
@@ -94,12 +132,60 @@ export const SoloSpecimens: React.FC = () => {
   const currentSpecimen = specimens.find((s) => s.id === selectedFlower) || specimens[0];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-mono">
       {/* Left Specimen Selector */}
       <div className="lg:col-span-4 space-y-4">
+        {/* Bloom Controller */}
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1c1c1c]">
+            <span className="text-[11px] tracking-wider uppercase text-white font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span>Bloom Animation</span>
+            </span>
+            <span className="text-[10px] text-[#888888]">
+              {Math.round(bloomValue * 100)}%
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startBloomAnimation}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                isBlooming
+                  ? 'bg-amber-400 text-black shadow-lg shadow-amber-400/20'
+                  : 'bg-white hover:bg-slate-200 text-black shadow'
+              }`}
+            >
+              {isBlooming ? <Pause className="w-3.5 h-3.5 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black" />}
+              <span>{isBlooming ? 'Blooming...' : 'Watch Bloom Unfurl ✨'}</span>
+            </button>
+            <button
+              onClick={() => {
+                soundSynth.playSparkle();
+                setBloomValue(1.0);
+              }}
+              className="p-2 rounded-lg bg-[#141414] hover:bg-[#202020] text-white border border-[#262626]"
+              title="Reset"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <input
+            type="range"
+            min={0.05}
+            max={1.0}
+            step={0.02}
+            value={bloomValue}
+            onChange={(e) => setBloomValue(parseFloat(e.target.value))}
+            className="w-full accent-white bg-[#222222]"
+          />
+        </div>
+
+        {/* Specimen Picker */}
         <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl">
           <div className="pb-2 mb-3 border-b border-[#1c1c1c]">
-            <span className="text-[11px] font-mono tracking-wider uppercase text-[#888888]">
+            <span className="text-[11px] tracking-wider uppercase text-[#888888]">
               Botanical Specimens
             </span>
           </div>
@@ -114,6 +200,7 @@ export const SoloSpecimens: React.FC = () => {
                     setSelectedFlower(item.id as SoloFlower);
                     setPaletteMode(item.recommendedPalette as AsciiPaletteMode);
                     setCharDensity(item.recommendedDensity as unknown as 'scanline' | 'fine' | 'matrix' | 'dense');
+                    setBloomValue(1.0);
                     soundSynth.playBloom(2);
                   }}
                   className={`w-full p-3 rounded-lg border text-left font-mono transition-all ${
@@ -140,7 +227,7 @@ export const SoloSpecimens: React.FC = () => {
         </div>
 
         {/* Specimen Notes & Anatomy */}
-        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl font-mono text-xs space-y-3">
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3 text-xs">
           <div className="pb-2 border-b border-[#1c1c1c] text-[11px] text-[#888888] uppercase">
             Specimen Anatomy & Details
           </div>
@@ -153,7 +240,7 @@ export const SoloSpecimens: React.FC = () => {
         </div>
 
         {/* Shading & Matrix Options */}
-        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl font-mono text-xs space-y-3">
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3 text-xs">
           <div className="pb-2 border-b border-[#1c1c1c] text-[11px] text-[#888888] uppercase">
             Chromatic Mode (ASCII Only)
           </div>

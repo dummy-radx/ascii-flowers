@@ -2,7 +2,7 @@ import React from 'react';
 import { Volume2, VolumeX, Heart } from 'lucide-react';
 import { soundSynth } from '../utils/audio';
 
-export type ActiveTab = 'bouquet' | 'specimens' | 'meadow' | 'oracle' | 'letters';
+export type ActiveTab = 'bouquet' | 'specimens' | 'gifts' | 'meadow' | 'oracle' | 'letters';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -28,6 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navItems: { id: ActiveTab; label: string; badge?: string }[] = [
     { id: 'bouquet', label: 'BOUQUET STUDIO', badge: 'MASTER' },
     { id: 'specimens', label: 'SOLO SPECIMENS', badge: 'HD' },
+    { id: 'gifts', label: 'PLUSHIES & GIFTS', badge: 'NEW' },
     { id: 'meadow', label: 'CLICK MEADOW' },
     { id: 'oracle', label: 'DAISY ORACLE' },
     { id: 'letters', label: 'LOVE LETTERS' },

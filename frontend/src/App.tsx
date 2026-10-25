@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navbar, type ActiveTab } from './components/Navbar';
 import { BouquetBuilder } from './components/BouquetBuilder';
 import { SoloSpecimens } from './components/SoloSpecimens';
+import { CuteGifts } from './components/CuteGifts';
 import { ClickMeadow } from './components/ClickMeadow';
 import { DaisyPetalGame } from './components/DaisyPetalGame';
 import { LoveLetters } from './components/LoveLetters';
@@ -41,6 +42,7 @@ export function App() {
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-4 flex-1">
         {activeTab === 'bouquet' && <BouquetBuilder />}
         {activeTab === 'specimens' && <SoloSpecimens />}
+        {activeTab === 'gifts' && <CuteGifts />}
         {activeTab === 'meadow' && <ClickMeadow />}
         {activeTab === 'oracle' && <DaisyPetalGame />}
         {activeTab === 'letters' && <LoveLetters />}
