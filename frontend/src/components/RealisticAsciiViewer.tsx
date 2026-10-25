@@ -10,7 +10,6 @@ interface RealisticAsciiViewerProps {
   glow?: boolean;
   onCanvasClick?: () => void;
   actionHint?: string;
-  hideRawTypography?: boolean;
 }
 
 export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
@@ -20,15 +19,13 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
   glow = true,
   onCanvasClick,
   actionHint,
-  hideRawTypography = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [viewMode, setViewMode] = useState<'canvas' | 'text'>('canvas');
   const [zoom, setZoom] = useState(1);
 
   // Render high-density ASCII characters onto the canvas with pixel precision
   useEffect(() => {
-    if (!asciiData || !canvasRef.current || viewMode !== 'canvas') return;
+    if (!asciiData || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -116,7 +113,7 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
         ctx.fillText(ov.text, posX, posY);
       }
     }
-  }, [asciiData, paletteMode, glow, zoom, viewMode]);
+  }, [asciiData, paletteMode, glow, zoom]);
 
 
   const handleDownloadPng = () => {
@@ -144,69 +141,40 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
           )}
         </div>
 
-        {/* View Mode & Zoom Controls */}
+        {/* Zoom & Export Controls */}
         <div className="flex items-center gap-1.5">
-          {!hideRawTypography && (
-            <div className="bg-[#141414] border border-[#262626] rounded-md p-0.5 flex items-center">
-              <button
-                onClick={() => setViewMode('canvas')}
-                className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
-                  viewMode === 'canvas'
-                    ? 'bg-white text-black font-semibold'
-                    : 'text-[#888888] hover:text-white'
-                }`}
-              >
-                Dot Matrix
-              </button>
-              <button
-                onClick={() => setViewMode('text')}
-                className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
-                  viewMode === 'text'
-                    ? 'bg-white text-black font-semibold'
-                    : 'text-[#888888] hover:text-white'
-                }`}
-              >
-                Raw Typography
-              </button>
-            </div>
-          )}
-
-          {viewMode === 'canvas' && (
-            <div className="flex items-center bg-[#141414] border border-[#262626] rounded-md p-0.5 text-[#888888]">
-              <button
-                onClick={() => setZoom((z) => Math.max(0.7, z - 0.15))}
-                className="p-1 hover:text-white"
-                title="Zoom Out"
-              >
-                <ZoomOut className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-[10px] px-1 text-white font-mono">{Math.round(zoom * 100)}%</span>
-              <button
-                onClick={() => setZoom((z) => Math.min(1.8, z + 0.15))}
-                className="p-1 hover:text-white"
-                title="Zoom In"
-              >
-                <ZoomIn className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setZoom(1)}
-                className="p-1 hover:text-white"
-                title="Reset Zoom"
-              >
-                <RotateCcw className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-
-          {viewMode === 'canvas' && (
+          <div className="flex items-center bg-[#141414] border border-[#262626] rounded-md p-0.5 text-[#888888]">
             <button
-              onClick={handleDownloadPng}
-              className="px-2.5 py-1 bg-[#141414] hover:bg-[#202020] border border-[#262626] text-white rounded-md flex items-center gap-1 text-[11px] transition-colors"
+              onClick={() => setZoom((z) => Math.max(0.7, z - 0.15))}
+              className="p-1 hover:text-white"
+              title="Zoom Out"
             >
-              <Download className="w-3 h-3" />
-              <span>PNG</span>
+              <ZoomOut className="w-3.5 h-3.5" />
             </button>
-          )}
+            <span className="text-[10px] px-1 text-white font-mono">{Math.round(zoom * 100)}%</span>
+            <button
+              onClick={() => setZoom((z) => Math.min(1.8, z + 0.15))}
+              className="p-1 hover:text-white"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setZoom(1)}
+              className="p-1 hover:text-white"
+              title="Reset Zoom"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+          </div>
+
+          <button
+            onClick={handleDownloadPng}
+            className="px-2.5 py-1 bg-[#141414] hover:bg-[#202020] border border-[#262626] text-white rounded-md flex items-center gap-1 text-[11px] transition-colors"
+          >
+            <Download className="w-3 h-3" />
+            <span>PNG</span>
+          </button>
         </div>
       </div>
 
@@ -217,34 +185,15 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
           onCanvasClick ? 'cursor-pointer group' : ''
         }`}
       >
-        {viewMode === 'canvas' ? (
-          <canvas
-            ref={canvasRef}
-            className={`max-w-full h-auto shadow-2xl block select-none ${
-              onCanvasClick
-                ? 'cursor-pointer group-hover:brightness-110 transition-all'
-                : 'cursor-grab active:cursor-grabbing'
-            }`}
-            style={{ imageRendering: 'pixelated' }}
-          />
-        ) : (
-          <pre
-            className="text-[11px] sm:text-[12.5px] md:text-[14px] leading-[14px] sm:leading-[16px] md:leading-[17.5px] font-mono text-white select-all overflow-x-auto whitespace-pre tracking-tight"
-            style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              color:
-                paletteMode === 'emerald'
-                  ? '#34d399'
-                  : paletteMode === 'amber'
-                  ? '#fbbf24'
-                  : paletteMode === 'amethyst'
-                  ? '#c084fc'
-                  : '#ffffff',
-            }}
-          >
-            {asciiData?.plainText}
-          </pre>
-        )}
+        <canvas
+          ref={canvasRef}
+          className={`max-w-full h-auto shadow-2xl block select-none ${
+            onCanvasClick
+              ? 'cursor-pointer group-hover:brightness-110 transition-all'
+              : 'cursor-grab active:cursor-grabbing'
+          }`}
+          style={{ imageRendering: 'pixelated' }}
+        />
 
         {actionHint && (
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-[#121212]/90 border border-white/20 text-white text-xs font-mono pointer-events-none shadow-2xl flex items-center gap-2 backdrop-blur-md animate-pulse">

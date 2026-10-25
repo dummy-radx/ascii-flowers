@@ -14,7 +14,7 @@ type SoloFlower = 'lily' | 'sunflower' | 'tulip' | 'daisy' | 'lavender';
 
 export const SoloSpecimens: React.FC = () => {
   const [selectedFlower, setSelectedFlower] = useState<SoloFlower>('lily');
-  const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('emerald');
+  const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('reference');
   const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('matrix');
   const [bloomValue, setBloomValue] = useState<number>(0.05);
   const [isBlooming, setIsBlooming] = useState<boolean>(true);
@@ -216,25 +216,25 @@ export const SoloSpecimens: React.FC = () => {
     {
       id: 'lily',
       name: 'Stargazer Lily',
-      refNote: 'Directly reproduces Image 1 (Emerald) & Image 3 (Silver)',
+      refNote: 'Ivory & emerald recurved petals with starlight bloom',
       desc: '6 flared recurved tepals, arched stamens, glossy lanceolate leaves, and falling stardust particles.',
-      recommendedPalette: 'emerald',
+      recommendedPalette: 'reference',
       recommendedDensity: 'matrix',
     },
     {
       id: 'sunflower',
       name: 'Radiant Sunflower',
-      refNote: 'Directly reproduces Image 4 (Close-up Scanline Micro-Typography)',
+      refNote: 'Golden amber Fibonacci disc with radiating ray petals',
       desc: 'Dense Fibonacci phyllotaxis disc (137.5° golden spiral) with radiating elongated ray petals.',
-      recommendedPalette: 'amber',
+      recommendedPalette: 'reference',
       recommendedDensity: 'fine',
     },
     {
       id: 'tulip',
       name: 'Wireframe Tulip',
-      refNote: 'Directly reproduces Image 2 (Translucent 3D Point-Cloud Curve)',
+      refNote: 'Natural delicate goblet cup with glowing points',
       desc: 'Curved translucent goblet cup formed of delicate starlight ASCII points.',
-      recommendedPalette: 'monochrome',
+      recommendedPalette: 'reference',
       recommendedDensity: 'fine',
     },
     {
@@ -250,7 +250,7 @@ export const SoloSpecimens: React.FC = () => {
       name: 'Fragrant Lavender',
       refNote: 'Slender aromatic florets',
       desc: 'Upright spike of clustered verticillasters whispering sweet dreams.',
-      recommendedPalette: 'amethyst',
+      recommendedPalette: 'reference',
       recommendedDensity: 'scanline',
     },
   ];
