@@ -25,10 +25,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const navItems: { id: ActiveTab; label: string; badge?: string }[] = [
-    { id: 'bouquet', label: 'BOUQUET STUDIO', badge: 'MASTER' },
-    { id: 'specimens', label: 'SOLO SPECIMENS', badge: 'HD' },
-    { id: 'gifts', label: 'PLUSHIES & GIFTS', badge: 'NEW' },
+  const navItems: { id: ActiveTab; label: string }[] = [
+    { id: 'bouquet', label: 'BOUQUET STUDIO' },
+    { id: 'specimens', label: 'SOLO SPECIMENS' },
+    { id: 'gifts', label: 'PLUSHIES & GIFTS' },
     { id: 'meadow', label: 'CLICK MEADOW' },
     { id: 'oracle', label: 'DAISY ORACLE' },
     { id: 'letters', label: 'LOVE LETTERS' },
@@ -74,15 +74,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <span>{item.label}</span>
-                {item.badge && (
-                  <span
-                    className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                      isActive ? 'bg-black text-white' : 'bg-[#222222] text-[#888888]'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </button>
             );
           })}
