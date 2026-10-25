@@ -189,7 +189,7 @@ export const CuteGifts: React.FC = () => {
 
           {/* ASCII Monospace Card Render (Locked to A+ Large Display) */}
           <div className="bg-[#000000] border border-[#222222] rounded-lg p-3 sm:p-3.5 overflow-x-auto shadow-inner">
-            <pre className="font-mono text-pink-200 select-all whitespace-pre tracking-tight transition-all text-[12.5px] sm:text-[13.5px] md:text-[14px] leading-[16px] sm:leading-[17.5px] md:leading-[18px]">
+            <pre className="font-mono text-pink-200 select-all whitespace-pre tracking-tight transition-all text-[14.5px] sm:text-[16px] md:text-[17.5px] leading-[19px] sm:leading-[21px] md:leading-[23px]">
               {displayedAscii}
             </pre>
           </div>

@@ -43,7 +43,7 @@ export const SoloSpecimens: React.FC = () => {
       renderer.addTextOverlay({
         text: '♥ Fragrance of Devotion & Starlight for Sreeparna ♥',
         canvasX: cx,
-        canvasY: 58,
+        canvasY: 64,
         color: '#f472b6',
         align: 'center',
       });
@@ -59,7 +59,7 @@ export const SoloSpecimens: React.FC = () => {
       renderer.addTextOverlay({
         text: '♥ Warmth, Loyalty & Pure Sunshine for Sreeparna ♥',
         canvasX: cx,
-        canvasY: 58,
+        canvasY: 64,
         color: '#fbbf24',
         align: 'center',
       });
@@ -75,7 +75,7 @@ export const SoloSpecimens: React.FC = () => {
       renderer.addTextOverlay({
         text: '♥ Grace, Rebirth & Deep Affection for Sreeparna ♥',
         canvasX: cx,
-        canvasY: 58,
+        canvasY: 64,
         color: '#fb7185',
         align: 'center',
       });
@@ -91,7 +91,7 @@ export const SoloSpecimens: React.FC = () => {
       renderer.addTextOverlay({
         text: '♥ Innocence, True Love & Cheerful Radiance ♥',
         canvasX: cx,
-        canvasY: 58,
+        canvasY: 64,
         color: '#38bdf8',
         align: 'center',
       });
@@ -107,7 +107,7 @@ export const SoloSpecimens: React.FC = () => {
       renderer.addTextOverlay({
         text: '♥ Calm Serenity & Eternal Devotion for Sreeparna ♥',
         canvasX: cx,
-        canvasY: 58,
+        canvasY: 64,
         color: '#c084fc',
         align: 'center',
       });

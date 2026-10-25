@@ -328,7 +328,7 @@ export const DaisyPetalGame: React.FC = () => {
                     )}
                   </button>
                 </div>
-                <pre className="text-[11.5px] sm:text-[12.5px] leading-[15px] sm:leading-[16.5px] font-mono text-amber-200 select-all whitespace-pre tracking-tight">
+                <pre className="text-[13.5px] sm:text-[15px] md:text-[16px] leading-[18px] sm:leading-[20px] md:leading-[21px] font-mono text-amber-200 select-all whitespace-pre tracking-tight">
                   {currentReason.asciiArt}
                 </pre>
               </div>

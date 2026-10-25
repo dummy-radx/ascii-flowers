@@ -681,7 +681,7 @@ export const AsciiRadioBox: React.FC = () => {
         {/* THE BELOVED CLASSIC ISOMETRIC ASCII BOOMBOX ART */}
         <div className="bg-[#050505] border border-[#222222] rounded-lg p-3 sm:p-5 overflow-x-auto select-none shadow-inner flex justify-center">
           <pre
-            className="ascii-art text-[10px] sm:text-xs md:text-[13px] leading-tight font-mono tracking-normal whitespace-pre text-left inline-block"
+            className="ascii-art text-[12px] sm:text-[14px] md:text-[16px] leading-tight font-mono tracking-normal whitespace-pre text-left inline-block"
             style={{ textShadow: colorTheme !== 'monochrome' ? '0 0 6px currentColor' : 'none' }}
           >
 {`               ._____________________________________________________________.

@@ -34,9 +34,9 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Character cell dimensions (aspect ratio ~ 0.55 for monospace)
-    const cellW = 5.8 * zoom;
-    const cellH = 10.2 * zoom;
+    // Character cell dimensions (aspect ratio ~ 0.55 for monospace) - enlarged for crisp, large visibility
+    const cellW = 7.2 * zoom;
+    const cellH = 12.6 * zoom;
 
     canvas.width = Math.floor(asciiData.width * cellW);
     canvas.height = Math.floor(asciiData.height * cellH);
@@ -46,13 +46,15 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.imageSmoothingEnabled = true;
-    const fontSize = Math.max(9, Math.round(9.6 * zoom));
+    const fontSize = Math.max(11, Math.round(11.8 * zoom));
     ctx.font = `bold ${fontSize}px "JetBrains Mono", "Space Mono", monospace`;
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
 
     const grid = asciiData.grid;
     const isMonochrome = paletteMode === 'monochrome';
+
+    const hasStampedOverlays = Boolean(asciiData.stampedOverlays && asciiData.stampedOverlays.length > 0);
 
     for (let y = 0; y < asciiData.height; y++) {
       const row = grid[y];
@@ -62,6 +64,7 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
       for (let x = 0; x < asciiData.width; x++) {
         const cell = row[x];
         if (!cell || cell.char === ' ' || cell.brightness < 0.05) continue;
+        if (hasStampedOverlays && cell.isOverlay) continue;
 
         const posX = x * cellW;
         const colorStr = `rgb(${cell.r}, ${cell.g}, ${cell.b})`;
@@ -77,6 +80,40 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
         }
 
         ctx.fillText(cell.char, posX, posY);
+      }
+    }
+
+    // Render prominent, large glowing ASCII typography overlays (e.g. ✦ MY SWEETEST SUNSHINE ✦)
+    if (hasStampedOverlays && asciiData.stampedOverlays) {
+      for (const ov of asciiData.stampedOverlays) {
+        if (!ov.text) continue;
+
+        const posX = ov.gridX * cellW;
+        const posY = ov.gridY * cellH + cellH / 2;
+
+        // Substantially bigger typography!
+        // Main title (e.g. ✦ MY SWEETEST SUNSHINE ✦): 23px * zoom
+        // Subtitle (e.g. ♥ Forever Blooming in Starlight ♥): 16.5px * zoom
+        // General text: 14.5px * zoom
+        const overlayFontSize = ov.isTitle
+          ? Math.max(16, Math.round(23 * zoom))
+          : ov.isSubtitle
+          ? Math.max(13, Math.round(16.5 * zoom))
+          : Math.max(11, Math.round(14.5 * zoom));
+
+        ctx.font = `bold ${overlayFontSize}px "JetBrains Mono", "Space Mono", monospace`;
+        ctx.textAlign = ov.align || 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = ov.colorStr;
+
+        if (glow && !isMonochrome) {
+          ctx.shadowColor = ov.colorStr;
+          ctx.shadowBlur = ov.isTitle ? 14 * zoom : 8 * zoom;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.fillText(ov.text, posX, posY);
       }
     }
   }, [asciiData, paletteMode, glow, zoom, viewMode]);
@@ -192,7 +229,7 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
           />
         ) : (
           <pre
-            className="text-[8.5px] sm:text-[10px] md:text-[11px] leading-[11px] sm:leading-[13px] md:leading-[14px] font-mono text-white select-all overflow-x-auto whitespace-pre tracking-tight"
+            className="text-[11px] sm:text-[12.5px] md:text-[14px] leading-[14px] sm:leading-[16px] md:leading-[17.5px] font-mono text-white select-all overflow-x-auto whitespace-pre tracking-tight"
             style={{
               fontFamily: '"JetBrains Mono", monospace',
               color:

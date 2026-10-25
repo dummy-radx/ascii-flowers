@@ -376,7 +376,7 @@ export const ClickMeadow: React.FC = () => {
             className="absolute pointer-events-none transition-all duration-300 group"
           >
             <pre
-              className="font-mono text-[12px] leading-[14px] font-bold drop-shadow-md select-none"
+              className="font-mono text-[15px] sm:text-[16.5px] leading-[18px] sm:leading-[19.5px] font-bold drop-shadow-md select-none"
               style={{
                 color: item.color,
                 textShadow: `0 0 10px ${item.color}60`,

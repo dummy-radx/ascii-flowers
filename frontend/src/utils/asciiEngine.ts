@@ -47,6 +47,17 @@ export interface AsciiCell {
   b: number;
   a: number;
   brightness: number;
+  isOverlay?: boolean;
+}
+
+export interface StampedOverlay {
+  text: string;
+  gridX: number;
+  gridY: number;
+  align: 'center' | 'left' | 'right';
+  colorStr: string;
+  isTitle: boolean;
+  isSubtitle: boolean;
 }
 
 export interface AsciiGridResult {
@@ -54,6 +65,7 @@ export interface AsciiGridResult {
   plainText: string;
   width: number;
   height: number;
+  stampedOverlays?: StampedOverlay[];
 }
 
 export interface AsciiTextOverlay {
@@ -1427,7 +1439,7 @@ export class BotanicalCanvasRenderer {
       this.addTextOverlay({
         text: '♥ Forever Blooming in Starlight ♥',
         canvasX: cx,
-        canvasY: 70,
+        canvasY: 76,
         color: '#94a3b8',
         align: 'center',
       });
@@ -1663,6 +1675,8 @@ export function rasterizeBouquet(
   }
 
   // Stamp Text Overlays directly into character matrix for 100% crisp legibility
+  const stampedOverlays: StampedOverlay[] = [];
+
   if (overlays && overlays.length > 0) {
     for (const overlay of overlays) {
       if (!overlay.text) continue;
@@ -1711,6 +1725,9 @@ export function rasterizeBouquet(
         b = 255;
       }
 
+      const isTitle = overlay.text.includes('✦') || (overlay.text === overlay.text.toUpperCase() && overlay.text.length > 10 && !overlay.text.includes('♥'));
+      const isSubtitle = overlay.text.includes('♥') && !isTitle;
+
       // Clear adjacent padding spaces so no scanlines clip through the text
       if (startX - 1 >= 0 && startX - 1 < width && grid[gridY]) {
         grid[gridY][startX - 1] = { char: ' ', r: 0, g: 0, b: 0, a: 0, brightness: 0 };
@@ -1729,9 +1746,20 @@ export function rasterizeBouquet(
             b,
             a: 1.0,
             brightness: 1.0,
+            isOverlay: true,
           };
         }
       }
+
+      stampedOverlays.push({
+        text: overlay.text,
+        gridX,
+        gridY,
+        align,
+        colorStr: `rgb(${r}, ${g}, ${b})`,
+        isTitle,
+        isSubtitle,
+      });
     }
   }
 
@@ -1742,5 +1770,6 @@ export function rasterizeBouquet(
     plainText: textLines.join('\n'),
     width,
     height,
+    stampedOverlays,
   };
 }
