@@ -25,60 +25,6 @@ import { soundSynth } from '../utils/audio';
 // Path to the song in public/
 const SONG_URL = '/Sufjan_Stevens_-_Mystery_of_Love_(mp3.pm).mp3';
 
-interface RadioStation {
-  id: string;
-  freq: string;
-  freqNum: number;
-  name: string;
-  tagline: string;
-  artist: string;
-  album: string;
-  type: 'song' | 'synth-rain' | 'synth-lofi' | 'synth-musicbox';
-}
-
-const STATIONS: RadioStation[] = [
-  {
-    id: 'sufjan',
-    freq: '104.3 FM',
-    freqNum: 104.3,
-    name: 'Mystery of Love',
-    tagline: "Sreeparna's Dedication Station",
-    artist: 'Sufjan Stevens',
-    album: 'Call Me By Your Name OST',
-    type: 'song',
-  },
-  {
-    id: 'lofi',
-    freq: '98.5 FM',
-    freqNum: 98.5,
-    name: 'Meadow Breeze & Acoustic Chimes',
-    tagline: 'Soft Ambient Pentatonic Flowers',
-    artist: 'Botanical Radio Lab',
-    album: 'S+I Meadow Whispers',
-    type: 'synth-lofi',
-  },
-  {
-    id: 'rain',
-    freq: '91.2 FM',
-    freqNum: 91.2,
-    name: 'Late Night Rain & Analog Hiss',
-    tagline: 'Cozy Nostalgia Frequency',
-    artist: 'Vintage Tube Broadcast',
-    album: 'Tape Loop Archive',
-    type: 'synth-rain',
-  },
-  {
-    id: 'musicbox',
-    freq: '88.0 FM',
-    freqNum: 88.0,
-    name: 'Starlight Celestial Music Box',
-    tagline: 'Gentle Music Box for Sweet Dreams',
-    artist: 'Midnight Echoes',
-    album: 'Lullabies for Cutu',
-    type: 'synth-musicbox',
-  },
-];
-
 interface LyricLine {
   time: number; // in seconds
   text: string;
@@ -102,7 +48,7 @@ const LYRICS: LyricLine[] = [
   { time: 101, text: 'Brother, will you hold me?' },
   { time: 114, text: 'Oh, will wonders ever cease?' },
   { time: 121, text: 'Blessed be the mystery of love' },
-  { time: 135, text: '♪ [Lyrical acoustic interlude] ♪' },
+  { time: 135, text: '♪ [Lyrical acoustic guitar interlude] ♪' },
   { time: 150, text: 'Lord, I no longer believe' },
   { time: 157, text: 'Drowned in living waters' },
   { time: 164, text: 'Cursed by the love that I received' },
@@ -127,10 +73,9 @@ const LYRICS: LyricLine[] = [
 type RadioColorTheme = 'monochrome' | 'amber' | 'emerald' | 'rose';
 
 export const AsciiRadioBox: React.FC = () => {
-  const [selectedStation, setSelectedStation] = useState<RadioStation>(STATIONS[0]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(248); // ~4m 08s
   const [volume, setVolume] = useState<number>(0.8);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isLooping, setIsLooping] = useState<boolean>(true);
@@ -138,23 +83,17 @@ export const AsciiRadioBox: React.FC = () => {
   const [hasScanlines, setHasScanlines] = useState<boolean>(false);
   const [showLyrics, setShowLyrics] = useState<boolean>(true);
   const [tapeFrame, setTapeFrame] = useState<number>(0);
-  const [vuLevels, setVuLevels] = useState<number[]>([1, 2, 4, 3, 5, 2, 6, 4, 3, 5, 2, 4]);
+  const [vuLevels, setVuLevels] = useState<number[]>([1, 2, 4, 3, 5, 2, 6, 4, 3, 5, 2, 4, 3, 5, 2, 1]);
   const [copiedNote, setCopiedNote] = useState<boolean>(false);
-  const [isTuning, setIsTuning] = useState<boolean>(false);
 
   // Audio refs
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const synthNodesRef = useRef<{
-    oscs: OscillatorNode[];
-    gain: GainNode | null;
-    intervalId?: number;
-  }>({ oscs: [], gain: null });
   const animFrameRef = useRef<number | null>(null);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Tape reel animation frames
+  // Tape reel symbols
   const SPOOL_SYMBOLS = ['◐', '◓', '◑', '◒'];
 
   // Initialize Audio element
@@ -166,7 +105,9 @@ export const AsciiRadioBox: React.FC = () => {
     audioRef.current = audio;
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration || 248); // ~4m 08s fallback
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
     };
 
     const handleTimeUpdate = () => {
@@ -188,7 +129,6 @@ export const AsciiRadioBox: React.FC = () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
       audio.pause();
-      stopSynthStation();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, []);
@@ -213,7 +153,7 @@ export const AsciiRadioBox: React.FC = () => {
             source.connect(analyser);
             analyser.connect(ctx.destination);
           } catch {
-            // Already connected or cross-origin safe fallback
+            // Already connected
           }
         }
       }
@@ -224,18 +164,18 @@ export const AsciiRadioBox: React.FC = () => {
     }
   };
 
-  // Tape Spool Animation Loop & VU Meter
+  // Tape spool rotation loop
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (isPlaying) {
       interval = setInterval(() => {
         setTapeFrame((prev) => (prev + 1) % SPOOL_SYMBOLS.length);
-      }, 180);
+      }, 160);
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Visualizer render loop
+  // Visualizer loop
   useEffect(() => {
     let isCancelled = false;
 
@@ -246,19 +186,17 @@ export const AsciiRadioBox: React.FC = () => {
           const dataArray = new Uint8Array(bufferLength);
           analyserRef.current.getByteFrequencyData(dataArray);
 
-          // Downsample to 16 bars
           const bars: number[] = [];
           const step = Math.max(1, Math.floor(bufferLength / 16));
           for (let i = 0; i < 16; i++) {
             const val = dataArray[i * step] || 0;
-            // Scale 0-255 to 0-8 block height
             const level = Math.min(8, Math.floor((val / 255) * 8.5));
             bars.push(level);
           }
           setVuLevels(bars);
         } else {
-          // Dynamic simulated rhythmic VU meter
-          const time = Date.now() / 200;
+          // Dynamic rhythmic equalizer simulation
+          const time = Date.now() / 180;
           const bars = Array.from({ length: 16 }, (_, i) => {
             const wave = Math.sin(time + i * 0.7) * 3 + Math.cos(time * 0.5 + i) * 2 + 4;
             return Math.max(1, Math.min(8, Math.round(wave)));
@@ -281,190 +219,22 @@ export const AsciiRadioBox: React.FC = () => {
     };
   }, [isPlaying]);
 
-  // Handle Station Switching
-  const handleSelectStation = (station: RadioStation) => {
-    if (station.id === selectedStation.id) return;
-
-    soundSynth.playSparkle();
-    setIsTuning(true);
-
-    // Play analog tuning static sound
-    playTuningClick();
-
-    setTimeout(() => {
-      setSelectedStation(station);
-      setIsTuning(false);
-
-      if (station.type === 'song') {
-        stopSynthStation();
-        if (audioRef.current && isPlaying) {
-          initWebAudio();
-          audioRef.current.play().catch(() => {});
-        }
-      } else {
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
-        if (isPlaying) {
-          startSynthStation(station.type);
-        }
-      }
-    }, 280);
-  };
-
-  // Synthesizer Stations (Rain, Meadow Lofi, Music Box)
-  const stopSynthStation = () => {
-    if (synthNodesRef.current.intervalId) {
-      window.clearInterval(synthNodesRef.current.intervalId);
-      synthNodesRef.current.intervalId = undefined;
-    }
-    synthNodesRef.current.oscs.forEach((osc) => {
-      try {
-        osc.stop();
-        osc.disconnect();
-      } catch {
-        // Ignored
-      }
-    });
-    synthNodesRef.current.oscs = [];
-    if (synthNodesRef.current.gain) {
-      synthNodesRef.current.gain.disconnect();
-      synthNodesRef.current.gain = null;
-    }
-  };
-
-  const startSynthStation = (type: RadioStation['type']) => {
-    stopSynthStation();
-    initWebAudio();
-    const ctx = audioCtxRef.current;
-    if (!ctx) return;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(isMuted ? 0 : volume * 0.45, ctx.currentTime);
-    if (analyserRef.current) {
-      masterGain.connect(analyserRef.current);
-      analyserRef.current.connect(ctx.destination);
-    } else {
-      masterGain.connect(ctx.destination);
-    }
-    synthNodesRef.current.gain = masterGain;
-
-    if (type === 'synth-musicbox') {
-      const melody = [523.25, 659.25, 783.99, 1046.5, 880.0, 659.25, 783.99, 587.33];
-      let step = 0;
-      const intervalId = window.setInterval(() => {
-        if (!audioCtxRef.current) return;
-        const osc = audioCtxRef.current.createOscillator();
-        const noteGain = audioCtxRef.current.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = melody[step % melody.length];
-        step++;
-
-        noteGain.gain.setValueAtTime(0.001, audioCtxRef.current.currentTime);
-        noteGain.gain.exponentialRampToValueAtTime(0.3, audioCtxRef.current.currentTime + 0.02);
-        noteGain.gain.exponentialRampToValueAtTime(0.0001, audioCtxRef.current.currentTime + 0.8);
-
-        osc.connect(noteGain);
-        noteGain.connect(masterGain);
-        osc.start();
-        osc.stop(audioCtxRef.current.currentTime + 0.85);
-      }, 400);
-      synthNodesRef.current.intervalId = intervalId;
-    } else if (type === 'synth-lofi') {
-      // Warm pentatonic ambient pads
-      const chords = [
-        [261.63, 329.63, 392.0, 493.88], // Cmaj7
-        [220.0, 261.63, 329.63, 392.0],  // Am7
-        [174.61, 220.0, 261.63, 329.63], // Fmaj7
-        [196.0, 246.94, 293.66, 392.0],  // G7
-      ];
-      let chordIdx = 0;
-      const intervalId = window.setInterval(() => {
-        if (!audioCtxRef.current) return;
-        const currentChord = chords[chordIdx % chords.length];
-        chordIdx++;
-        currentChord.forEach((freq) => {
-          const osc = audioCtxRef.current!.createOscillator();
-          const chordGain = audioCtxRef.current!.createGain();
-          osc.type = 'triangle';
-          osc.frequency.value = freq;
-
-          chordGain.gain.setValueAtTime(0.001, audioCtxRef.current!.currentTime);
-          chordGain.gain.exponentialRampToValueAtTime(0.12, audioCtxRef.current!.currentTime + 0.6);
-          chordGain.gain.exponentialRampToValueAtTime(0.0001, audioCtxRef.current!.currentTime + 2.2);
-
-          osc.connect(chordGain);
-          chordGain.connect(masterGain);
-          osc.start();
-          osc.stop(audioCtxRef.current!.currentTime + 2.3);
-        });
-      }, 2000);
-      synthNodesRef.current.intervalId = intervalId;
-    } else if (type === 'synth-rain') {
-      // White/pink noise generator for rain & tape hiss
-      const bufferSize = ctx.sampleRate * 2;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-      const whiteNoise = ctx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 850;
-
-      whiteNoise.connect(filter);
-      filter.connect(masterGain);
-      whiteNoise.start();
-      synthNodesRef.current.oscs = [whiteNoise as unknown as OscillatorNode];
-    }
-  };
-
-  // Radio tuning static click sound
-  const playTuningClick = () => {
-    initWebAudio();
-    const ctx = audioCtxRef.current;
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(140, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.08);
-
-    g.gain.setValueAtTime(0.15, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
-
-    osc.connect(g);
-    g.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.09);
-  };
-
   // Play / Pause toggle
   const togglePlay = () => {
     initWebAudio();
     const nextPlay = !isPlaying;
     setIsPlaying(nextPlay);
 
-    if (selectedStation.type === 'song') {
-      if (audioRef.current) {
-        if (nextPlay) {
-          audioRef.current.play().catch((err) => {
-            console.error('Audio playback failed', err);
-            setIsPlaying(false);
-          });
-        } else {
-          audioRef.current.pause();
-        }
-      }
-    } else {
+    if (audioRef.current) {
       if (nextPlay) {
-        startSynthStation(selectedStation.type);
+        audioRef.current.play().catch((err) => {
+          console.error('Playback error:', err);
+          setIsPlaying(false);
+        });
+        soundSynth.playSparkle();
       } else {
-        stopSynthStation();
+        audioRef.current.pause();
+        soundSynth.playPluck(1);
       }
     }
   };
@@ -473,14 +243,14 @@ export const AsciiRadioBox: React.FC = () => {
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseFloat(e.target.value);
     setCurrentTime(newTime);
-    if (audioRef.current && selectedStation.type === 'song') {
+    if (audioRef.current) {
       audioRef.current.currentTime = newTime;
     }
   };
 
   // Skip -10s / +10s
   const skip = (seconds: number) => {
-    if (audioRef.current && selectedStation.type === 'song') {
+    if (audioRef.current) {
       audioRef.current.currentTime = Math.max(0, Math.min(duration, audioRef.current.currentTime + seconds));
       soundSynth.playBloom(2);
     }
@@ -493,9 +263,6 @@ export const AsciiRadioBox: React.FC = () => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : val;
     }
-    if (synthNodesRef.current.gain && audioCtxRef.current) {
-      synthNodesRef.current.gain.gain.setValueAtTime(isMuted ? 0 : val * 0.45, audioCtxRef.current.currentTime);
-    }
   };
 
   // Mute toggle
@@ -505,12 +272,10 @@ export const AsciiRadioBox: React.FC = () => {
     if (audioRef.current) {
       audioRef.current.volume = nextMute ? 0 : volume;
     }
-    if (synthNodesRef.current.gain && audioCtxRef.current) {
-      synthNodesRef.current.gain.gain.setValueAtTime(nextMute ? 0 : volume * 0.45, audioCtxRef.current.currentTime);
-    }
+    soundSynth.playBloom(1);
   };
 
-  // Copy dedication text
+  // Copy dedication
   const handleCopyDedication = () => {
     navigator.clipboard.writeText(
       `"Blessed be the mystery of love..." 📻 Sufjan Stevens - Mystery of Love. Dedicated with endless love to Sreeparna from Ishan ♥`
@@ -536,14 +301,13 @@ export const AsciiRadioBox: React.FC = () => {
 
   // Current active lyric line index
   const activeLyricIndex = useMemo(() => {
-    if (selectedStation.type !== 'song') return -1;
     for (let i = LYRICS.length - 1; i >= 0; i--) {
       if (currentTime >= LYRICS[i].time) {
         return i;
       }
     }
     return 0;
-  }, [currentTime, selectedStation.type]);
+  }, [currentTime]);
 
   // Auto-scroll lyrics
   useEffect(() => {
@@ -555,7 +319,7 @@ export const AsciiRadioBox: React.FC = () => {
     }
   }, [activeLyricIndex, showLyrics]);
 
-  // Color themes config
+  // Color theme styles
   const themeStyles = {
     monochrome: {
       text: 'text-white',
@@ -595,13 +359,15 @@ export const AsciiRadioBox: React.FC = () => {
     },
   }[colorTheme];
 
-  // Visualizer blocks
   const VU_CHARS = [' ', ' ', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
   const spoolChar = SPOOL_SYMBOLS[tapeFrame];
 
+  const leftVUStr = vuLevels.slice(0, 8).map((l) => VU_CHARS[l]).join('');
+  const rightVUStr = vuLevels.slice(8, 16).map((l) => VU_CHARS[l]).join('');
+
   return (
-    <div className={`space-y-6 ${themeStyles.text} transition-colors duration-300`}>
-      {/* Page Header */}
+    <div className={`space-y-6 ${themeStyles.text} transition-colors duration-300 font-mono`}>
+      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#222222]">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -610,7 +376,7 @@ export const AsciiRadioBox: React.FC = () => {
             </span>
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             <span className="text-[10px] text-pink-400 font-mono tracking-wider">
-              ✦ SREPARNA'S CASSETTE BOX ✦
+              ✦ SREEPARNA'S CASSETTE BOX ✦
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold font-mono tracking-wide flex items-center gap-2">
@@ -680,7 +446,7 @@ export const AsciiRadioBox: React.FC = () => {
       <div
         className={`relative overflow-hidden rounded-xl border ${themeStyles.border} ${themeStyles.panel} ${themeStyles.glow} p-4 sm:p-6 transition-all duration-300`}
       >
-        {/* CRT Scanline Overlay Effect */}
+        {/* CRT Scanline Overlay */}
         {hasScanlines && (
           <div
             className="pointer-events-none absolute inset-0 z-20 opacity-25"
@@ -713,20 +479,19 @@ export const AsciiRadioBox: React.FC = () => {
           </div>
         </div>
 
-        {/* ASCII MASTER RADIO CHASSIS DISPLAY */}
-        <div className="bg-[#050505] border border-[#222222] rounded-lg p-3 sm:p-5 overflow-x-auto select-none shadow-inner">
+        {/* THE BELOVED CLASSIC ISOMETRIC ASCII BOOMBOX ART */}
+        <div className="bg-[#050505] border border-[#222222] rounded-lg p-3 sm:p-5 overflow-x-auto select-none shadow-inner flex justify-center">
           <pre
-            className="ascii-art text-[10px] sm:text-xs md:text-[13px] leading-tight font-mono text-center tracking-normal whitespace-pre block"
+            className="ascii-art text-[10px] sm:text-xs md:text-[13px] leading-tight font-mono tracking-normal whitespace-pre text-left inline-block"
             style={{ textShadow: colorTheme !== 'monochrome' ? '0 0 6px currentColor' : 'none' }}
           >
-{`
-               ._____________________________________________________________.
+{`               ._____________________________________________________________.
               /                                                             / |
              |   .=======================================================.  | |
              |  /                                                       /|  | |
    \\         | |   [●] POWER    [●] STEREO    [●] ON-AIR    [●] DOLBY  | |  | |
     \\        | |=======================================================| |  | |
-     \\       | |  DIAL: 88.0 ··· 91.2 ··· 98.5 ··· [104.3] ··· 108 MHz | |  | |
+     \\       | |  DIAL: 88.0 ··· 92.0 ··· 98.0 ··· [104.3] ··· 108 MHz  | |  | |
       \\      | |--------|---------|---------|--------▲--------|--------| |  | |
        \\     | '-------------------------------------------------------' |  | |
         \\    |                                                           |  | |
@@ -735,20 +500,20 @@ export const AsciiRadioBox: React.FC = () => {
            \\ | |  .-------------------.  | |         |  .-----------.  | |   |  | |
              | |  | / / / / / / / / / |  | |         |  | ( ${spoolChar} )===( ${spoolChar} ) |  | |   |  | |
              | |  | \\ \\ \\ \\ \\ \\ \\ \\ \\ |  | |         |  | SREEPARNA  |  | |   |  | |
-             | |  | / / / / / / / / / |  | |         |  | MIXTAPE #1 |  | |   |  | |
-             | |  | \\ \\ \\ \\ \\ \\ \\ \\ \\ |  | |         |  | ( ${spoolChar} )===( ${spoolChar} ) |  | |   |  | |
+             | |  | / / / / / / / / / |  | |         |  | MYSTERY OF |  | |   |  | |
+             | |  | \\ \\ \\ \\ \\ \\ \\ \\ \\ |  | |         |  | LOVE - LOVE|  | |   |  | |
+             | |  | / / / / / / / / / |  | |         |  | ( ${spoolChar} )===( ${spoolChar} ) |  | |   |  | |
              | |  '-------------------'  | |         |  '-----------'  | |   |  | |
              | '-------------------------' '---------'-----------------' |  | |
              |                                                           |  | |
              |   EQUALIZER SPECTRUM:                                     |  | |
-             |   L [ ${vuLevels.slice(0, 8).map((l) => VU_CHARS[l]).join('')} ]          R [ ${vuLevels.slice(8, 16).map((l) => VU_CHARS[l]).join('')} ]             |  | |
+             |   L [ ${leftVUStr} ]                        R [ ${rightVUStr} ]      |  | |
              '-----------------------------------------------------------'  |/
-              '-------------------------------------------------------------'
-`}
+              '-------------------------------------------------------------' `}
           </pre>
         </div>
 
-        {/* Real-time Visualizer Spectrum Bar */}
+        {/* Real-time 16-Band Visualizer Spectrum Bar */}
         <div className="mt-4 p-3 bg-[#0a0a0a] rounded-lg border border-[#222222] font-mono">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="text-[#888888] flex items-center gap-1.5">
@@ -776,48 +541,7 @@ export const AsciiRadioBox: React.FC = () => {
           </div>
         </div>
 
-        {/* Station Selection Dial Grid */}
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-xs font-mono mb-2">
-            <span className="text-[#888888] uppercase tracking-wider">
-              ✦ FREQUENCY TUNER (CLICK TO TUNE)
-            </span>
-            {isTuning && (
-              <span className="text-amber-400 animate-pulse text-[11px]">
-                TUNING FREQUENCY... ⚡
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 font-mono">
-            {STATIONS.map((st) => {
-              const isSelected = selectedStation.id === st.id;
-              return (
-                <button
-                  key={st.id}
-                  onClick={() => handleSelectStation(st)}
-                  className={`text-left p-3 rounded-lg border transition-all relative overflow-hidden group ${
-                    isSelected
-                      ? `${themeStyles.badge} border-white shadow-md font-bold scale-[1.01]`
-                      : 'bg-[#0f0f0f] border-[#262626] text-[#888888] hover:text-white hover:border-[#444444]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold tracking-wider">{st.freq}</span>
-                    {isSelected && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider bg-black text-white">
-                        TUNED
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs font-semibold truncate mt-1">{st.name}</div>
-                  <div className="text-[10px] opacity-75 truncate">{st.artist}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Song Info & Interactive Playback Deck */}
+        {/* Track Details & Interactive Playback Deck */}
         <div className="mt-6 p-4 sm:p-5 bg-[#0a0a0a] rounded-xl border border-[#262626]">
           {/* Track Details Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#222222]">
@@ -833,119 +557,103 @@ export const AsciiRadioBox: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-mono uppercase tracking-widest text-[#888888]">
-                    {selectedStation.freq} • {selectedStation.tagline}
+                    FM 104.3 MHz • CALL ME BY YOUR NAME SOUNDTRACK
                   </span>
-                  {selectedStation.type === 'song' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-pink-400 font-mono">
-                      <Heart className="w-3 h-3 fill-pink-400" /> FOR SREEPARNA
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 text-[10px] text-pink-400 font-mono">
+                    <Heart className="w-3 h-3 fill-pink-400" /> FOR SREEPARNA
+                  </span>
                 </div>
                 <h3 className="text-base sm:text-lg font-bold font-mono text-white flex items-center gap-2">
-                  <span>{selectedStation.name}</span>
+                  <span>Mystery of Love</span>
                 </h3>
                 <div className="text-xs text-[#888888] font-mono">
-                  {selectedStation.artist} — {selectedStation.album}
+                  Sufjan Stevens — Original Motion Picture Soundtrack (2017)
                 </div>
               </div>
             </div>
 
-            {/* Lyrics / Notes Toggle */}
-            {selectedStation.type === 'song' && (
-              <button
-                onClick={() => setShowLyrics(!showLyrics)}
-                className={`px-3 py-1.5 text-xs font-mono rounded-md border flex items-center gap-1.5 transition-all self-start sm:self-auto ${
-                  showLyrics
-                    ? 'bg-white text-black font-semibold border-white'
-                    : 'bg-[#141414] border-[#2e2e2e] text-[#888888] hover:text-white'
-                }`}
-              >
-                <AlignLeft className="w-3.5 h-3.5" />
-                <span>{showLyrics ? 'HIDE LYRICS' : 'VIEW LYRICS'}</span>
-              </button>
-            )}
+            {/* Lyrics Toggle */}
+            <button
+              onClick={() => setShowLyrics(!showLyrics)}
+              className={`px-3 py-1.5 text-xs font-mono rounded-md border flex items-center gap-1.5 transition-all self-start sm:self-auto ${
+                showLyrics
+                  ? 'bg-white text-black font-semibold border-white'
+                  : 'bg-[#141414] border-[#2e2e2e] text-[#888888] hover:text-white'
+              }`}
+            >
+              <AlignLeft className="w-3.5 h-3.5" />
+              <span>{showLyrics ? 'HIDE LYRICS' : 'VIEW LYRICS'}</span>
+            </button>
           </div>
 
-          {/* Time Scrubber (Only for actual song) */}
-          {selectedStation.type === 'song' && (
-            <div className="pt-4 space-y-1.5 font-mono">
-              <div className="flex items-center justify-between text-xs text-[#888888]">
-                <span>{formatTime(currentTime)}</span>
-                <span className="text-white text-[11px]">
-                  {isPlaying ? '● PLAYING' : '❚❚ PAUSED'}
-                </span>
-                <span>{formatTime(duration)}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                step={0.5}
-                value={currentTime}
-                onChange={handleSeek}
-                className="w-full h-1.5 bg-[#222222] rounded-lg appearance-none cursor-pointer accent-white"
-              />
+          {/* Time Scrubber */}
+          <div className="pt-4 space-y-1.5 font-mono">
+            <div className="flex items-center justify-between text-xs text-[#888888]">
+              <span>{formatTime(currentTime)}</span>
+              <span className="text-white text-[11px]">
+                {isPlaying ? '● PLAYING' : '❚❚ PAUSED'}
+              </span>
+              <span>{formatTime(duration)}</span>
             </div>
-          )}
+            <input
+              type="range"
+              min={0}
+              max={duration || 100}
+              step={0.5}
+              value={currentTime}
+              onChange={handleSeek}
+              className="w-full h-1.5 bg-[#222222] rounded-lg appearance-none cursor-pointer accent-white"
+            />
+          </div>
 
           {/* Controls Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 pt-4 mt-2 font-mono">
             {/* Playback Buttons */}
             <div className="flex items-center gap-2">
-              {selectedStation.type === 'song' && (
-                <button
-                  onClick={() => skip(-10)}
-                  title="Rewind 10 seconds"
-                  className="p-2 rounded-md border border-[#2a2a2a] bg-[#121212] hover:bg-[#1f1f1f] text-white transition-all text-xs flex items-center gap-1"
-                >
-                  <SkipBack className="w-4 h-4" />
-                  <span className="text-[10px] hidden sm:inline">-10s</span>
-                </button>
-              )}
+              <button
+                onClick={() => skip(-10)}
+                title="Rewind 10 seconds"
+                className="p-2 rounded-md border border-[#2a2a2a] bg-[#121212] hover:bg-[#1f1f1f] text-white transition-all text-xs flex items-center gap-1"
+              >
+                <SkipBack className="w-4 h-4" />
+                <span className="text-[10px] hidden sm:inline">-10s</span>
+              </button>
 
               {/* Master Play/Pause Button */}
               <button
                 onClick={togglePlay}
-                className={`px-5 py-2.5 rounded-lg border font-bold text-xs sm:text-sm flex items-center gap-2 transition-all shadow-md ${
-                  isPlaying
-                    ? 'bg-white text-black border-white hover:bg-zinc-200'
-                    : 'bg-white text-black border-white hover:bg-zinc-200'
-                }`}
+                className="px-5 py-2.5 rounded-lg border font-bold text-xs sm:text-sm flex items-center gap-2 transition-all shadow-md bg-white text-black border-white hover:bg-zinc-200"
               >
                 {isPlaying ? <Pause className="w-4 h-4 fill-black" /> : <Play className="w-4 h-4 fill-black" />}
                 <span>{isPlaying ? 'PAUSE RADIO' : 'PLAY RADIO'}</span>
               </button>
 
-              {selectedStation.type === 'song' && (
-                <button
-                  onClick={() => skip(10)}
-                  title="Fast forward 10 seconds"
-                  className="p-2 rounded-md border border-[#2a2a2a] bg-[#121212] hover:bg-[#1f1f1f] text-white transition-all text-xs flex items-center gap-1"
-                >
-                  <SkipForward className="w-4 h-4" />
-                  <span className="text-[10px] hidden sm:inline">+10s</span>
-                </button>
-              )}
+              <button
+                onClick={() => skip(10)}
+                title="Fast forward 10 seconds"
+                className="p-2 rounded-md border border-[#2a2a2a] bg-[#121212] hover:bg-[#1f1f1f] text-white transition-all text-xs flex items-center gap-1"
+              >
+                <SkipForward className="w-4 h-4" />
+                <span className="text-[10px] hidden sm:inline">+10s</span>
+              </button>
 
-              {selectedStation.type === 'song' && (
-                <button
-                  onClick={() => {
-                    const nextLoop = !isLooping;
-                    setIsLooping(nextLoop);
-                    if (audioRef.current) audioRef.current.loop = nextLoop;
-                    soundSynth.playBloom(1);
-                  }}
-                  title={isLooping ? 'Loop is ON' : 'Loop is OFF'}
-                  className={`p-2 rounded-md border transition-all text-xs flex items-center gap-1 ${
-                    isLooping
-                      ? 'bg-white text-black font-semibold border-white'
-                      : 'bg-[#121212] border-[#2a2a2a] text-[#666666]'
-                  }`}
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span className="text-[10px] hidden sm:inline">LOOP</span>
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  const nextLoop = !isLooping;
+                  setIsLooping(nextLoop);
+                  if (audioRef.current) audioRef.current.loop = nextLoop;
+                  soundSynth.playBloom(1);
+                }}
+                title={isLooping ? 'Loop is ON' : 'Loop is OFF'}
+                className={`p-2 rounded-md border transition-all text-xs flex items-center gap-1 ${
+                  isLooping
+                    ? 'bg-white text-black font-semibold border-white'
+                    : 'bg-[#121212] border-[#2a2a2a] text-[#666666]'
+                }`}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="text-[10px] hidden sm:inline">LOOP</span>
+              </button>
             </div>
 
             {/* Volume & Sound Controls */}
@@ -980,7 +688,7 @@ export const AsciiRadioBox: React.FC = () => {
         </div>
 
         {/* Synchronized Lyrics Display for "Mystery of Love" */}
-        {showLyrics && selectedStation.type === 'song' && (
+        {showLyrics && (
           <div className="mt-4 p-4 bg-[#080808] border border-[#222222] rounded-xl font-mono">
             <div className="flex items-center justify-between text-xs pb-3 border-b border-[#1c1c1c] mb-3">
               <span className="text-[#888888] flex items-center gap-1.5 uppercase tracking-wider">

@@ -1023,6 +1023,381 @@ export class BotanicalCanvasRenderer {
     ctx.restore();
   }
 
+  /**
+   * Draw Authentic Realistic Love Letter Envelope & Glowing Unfolded Stationery
+   * With glowing typography matching the bouquet page!
+   * @param cx Center X on canvas (e.g. 260)
+   * @param cy Center Y on canvas (e.g. 340)
+   * @param scale Scale factor (e.g. 1.0)
+   * @param openProgress 0.0 (sealed envelope) to 1.0 (fully unfolded parchment letter)
+   * @param letter The LoveNote containing title, badge, message, ps
+   */
+  public drawLoveLetter(
+    cx: number,
+    cy: number,
+    scale: number,
+    openProgress: number,
+    letter: { title: string; badge: string; message: string; ps: string }
+  ) {
+    const ctx = this.ctx;
+    ctx.save();
+
+    if (openProgress < 0.6) {
+      // -------------------------------------------------------------
+      // 1. CLOSED OR UNSEALING REALISTIC AIRMAIL ENVELOPE
+      // -------------------------------------------------------------
+      const ew = 380 * scale;
+      const eh = 240 * scale;
+      const ey = cy + 20 * scale;
+
+      // Soft envelope drop shadow
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(cx - ew / 2 - 4, ey - eh / 2 + 6, ew + 8, eh + 8);
+
+      // Envelope body parchment
+      ctx.fillStyle = '#292524';
+      ctx.fillRect(cx - ew / 2, ey - eh / 2, ew, eh);
+
+      // Airmail perimeter border (Classic alternating red & cyan chevron slashes)
+      ctx.save();
+      const chevronW = 10 * scale;
+      ctx.lineWidth = 4;
+      for (let x = cx - ew / 2; x < cx + ew / 2; x += chevronW * 2) {
+        ctx.strokeStyle = '#38bdf8'; // Sky blue airmail
+        ctx.beginPath();
+        ctx.moveTo(x, ey - eh / 2 + 2);
+        ctx.lineTo(x + chevronW, ey - eh / 2 + 6);
+        ctx.moveTo(x, ey + eh / 2 - 2);
+        ctx.lineTo(x + chevronW, ey + eh / 2 - 6);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#f43f5e'; // Crimson airmail
+        ctx.beginPath();
+        ctx.moveTo(x + chevronW, ey - eh / 2 + 2);
+        ctx.lineTo(x + chevronW * 2, ey - eh / 2 + 6);
+        ctx.moveTo(x + chevronW, ey + eh / 2 - 2);
+        ctx.lineTo(x + chevronW * 2, ey + eh / 2 - 6);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Delicate inner border line
+      ctx.strokeStyle = '#57534e';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx - ew / 2 + 8, ey - eh / 2 + 8, ew - 16, eh - 16);
+
+      // Diagonal envelope fold lines meeting at center
+      ctx.strokeStyle = '#44403c';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      // From bottom corners to center
+      ctx.moveTo(cx - ew / 2 + 8, ey + eh / 2 - 8);
+      ctx.lineTo(cx, ey);
+      ctx.moveTo(cx + ew / 2 - 8, ey + eh / 2 - 8);
+      ctx.lineTo(cx, ey);
+      ctx.stroke();
+
+      // Top triangular flap
+      ctx.beginPath();
+      ctx.moveTo(cx - ew / 2 + 8, ey - eh / 2 + 8);
+      if (openProgress <= 0.2) {
+        // Closed flap pointing to center
+        ctx.lineTo(cx, ey + 15);
+      } else {
+        // Flap opening upward
+        const flapLift = (openProgress - 0.2) / 0.4;
+        const flapTipY = (ey + 15) - flapLift * 150;
+        ctx.lineTo(cx, flapTipY);
+      }
+      ctx.lineTo(cx + ew / 2 - 8, ey - eh / 2 + 8);
+      ctx.fillStyle = '#1c1917';
+      ctx.fill();
+      ctx.strokeStyle = '#78716c';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Postage Stamp in Upper Right
+      const stampX = cx + ew / 2 - 62 * scale;
+      const stampY = ey - eh / 2 + 20 * scale;
+      const stampW = 48 * scale;
+      const stampH = 56 * scale;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(stampX, stampY, stampW, stampH);
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(stampX, stampY, stampW, stampH);
+      // Mini flower in postage stamp
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(stampX + stampW / 2, stampY + stampH / 2, 8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(stampX + stampW / 2, stampY + stampH / 2, 3 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      // Wavy cancellation lines across the stamp
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < 3; i++) {
+        const lineY = stampY + 12 + i * 14;
+        ctx.moveTo(stampX - 25, lineY);
+        ctx.quadraticCurveTo(stampX + stampW / 2, lineY - 6, stampX + stampW + 12, lineY);
+      }
+      ctx.stroke();
+
+      // Airmail Circular Rubber Stamp in Upper Left
+      const postX = cx - ew / 2 + 55 * scale;
+      const postY = ey - eh / 2 + 45 * scale;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(postX, postY, 26 * scale, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(postX, postY, 20 * scale, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Center Wax Seal (if not fully broken)
+      if (openProgress <= 0.35) {
+        const sealY = ey + 15;
+        // Ribbon tails below seal
+        ctx.fillStyle = '#991b1b';
+        ctx.beginPath();
+        ctx.moveTo(cx - 10, sealY + 15);
+        ctx.lineTo(cx - 16, sealY + 45);
+        ctx.lineTo(cx - 8, sealY + 40);
+        ctx.lineTo(cx - 2, sealY + 46);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + 10, sealY + 15);
+        ctx.lineTo(cx + 16, sealY + 45);
+        ctx.lineTo(cx + 8, sealY + 40);
+        ctx.lineTo(cx + 2, sealY + 46);
+        ctx.closePath();
+        ctx.fill();
+
+        // Crimson Wax Medallion
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(cx, sealY, 22 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f87171';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Glowing ASCII Typography Stamped on Envelope
+      this.addTextOverlay({
+        text: '✦ AIR MAIL • SPECIAL COURIER OF LOVE ✦',
+        canvasX: cx,
+        canvasY: ey - eh / 2 + 35 * scale,
+        color: '#38bdf8',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: 'DELIVER TO: SREEPARNA (MY PRETTIEST BLOSSOM 🌸)',
+        canvasX: cx,
+        canvasY: ey + eh / 2 - 58 * scale,
+        color: '#f472b6',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: 'FROM: ISHAN (WITH ENDLESS MEADOW FLOWERS 🌻)',
+        canvasX: cx,
+        canvasY: ey + eh / 2 - 38 * scale,
+        color: '#fbbf24',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: openProgress <= 0.2 ? '♥ WAX SEAL: S + I ♥' : '✦ WAX SEAL UNSEALED! ✦',
+        canvasX: cx,
+        canvasY: ey + eh / 2 - 18 * scale,
+        color: '#facc15',
+        align: 'center',
+      });
+    } else {
+      // -------------------------------------------------------------
+      // 2. FULLY UNFOLDED AUTHENTIC LOVE LETTER PARCHMENT
+      // -------------------------------------------------------------
+      const pw = 460 * scale;
+      const ph = 600 * scale;
+
+      // Drop shadow behind parchment
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(cx - pw / 2 - 3, cy - ph / 2 + 5, pw + 6, ph + 6);
+
+      // Main parchment paper body (Deep obsidian-slate parchment)
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - pw / 2, cy - ph / 2, pw, ph);
+
+      // Outer delicate starlight border
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cx - pw / 2 + 8, cy - ph / 2 + 8, pw - 16, ph - 16);
+
+      // Inner golden border
+      ctx.strokeStyle = '#ca8a04';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx - pw / 2 + 14, cy - ph / 2 + 14, pw - 28, ph - 28);
+
+      // Subtle botanical watermark drawn in center background with faint opacity
+      ctx.save();
+      ctx.globalAlpha = 0.12;
+      this.drawDaisy(cx, cy + 30, 1.3, 1.0);
+      ctx.restore();
+
+      // Corner botanical flourishes on all 4 corners
+      const corners = [
+        { x: cx - pw / 2 + 24, y: cy - ph / 2 + 24 },
+        { x: cx + pw / 2 - 24, y: cy - ph / 2 + 24 },
+        { x: cx - pw / 2 + 24, y: cy + ph / 2 - 24 },
+        { x: cx + pw / 2 - 24, y: cy + ph / 2 - 24 },
+      ];
+      ctx.fillStyle = '#facc15';
+      for (const c of corners) {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // ============================================================
+      // GLOWING ROMANTIC ASCII TYPOGRAPHY (MATCHING BOUQUET PAGE!)
+      // ============================================================
+      const topY = cy - ph / 2 + 36;
+
+      // Letter Header & Badge
+      this.addTextOverlay({
+        text: `✦ ${letter.badge.toUpperCase()} ✦`,
+        canvasX: cx,
+        canvasY: topY,
+        color: '#facc15',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: `♥ ${letter.title.toUpperCase()} ♥`,
+        canvasX: cx,
+        canvasY: topY + 22,
+        color: '#ffffff',
+        align: 'center',
+      });
+      this.addTextOverlay({
+        text: '❀ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ❀',
+        canvasX: cx,
+        canvasY: topY + 44,
+        color: '#f472b6',
+        align: 'center',
+      });
+
+      // Salutation
+      this.addTextOverlay({
+        text: 'DEAR SREEPARNA,',
+        canvasX: cx - 180,
+        canvasY: topY + 74,
+        color: '#fef08a',
+        align: 'left',
+      });
+
+      // Wrap and render letter message paragraphs neatly
+      const wrappedLines = this.wrapLetterText(letter.message, 44);
+      let lineY = topY + 100;
+      for (const line of wrappedLines) {
+        if (line.trim().length > 0) {
+          this.addTextOverlay({
+            text: line,
+            canvasX: cx - 180,
+            canvasY: lineY,
+            color: '#f8fafc',
+            align: 'left',
+          });
+        }
+        lineY += 21;
+      }
+
+      // Valediction & Signature
+      lineY += 10;
+      this.addTextOverlay({
+        text: 'With infinite love, hugs, & endless flowers,',
+        canvasX: cx - 180,
+        canvasY: lineY,
+        color: '#f472b6',
+        align: 'left',
+      });
+      lineY += 22;
+      this.addTextOverlay({
+        text: 'Ishan  ♥',
+        canvasX: cx - 180,
+        canvasY: lineY,
+        color: '#fbbf24',
+        align: 'left',
+      });
+
+      // Postscript (P.S.) Section
+      if (letter.ps) {
+        lineY += 24;
+        this.addTextOverlay({
+          text: '....................................................',
+          canvasX: cx,
+          canvasY: lineY,
+          color: '#475569',
+          align: 'center',
+        });
+        lineY += 18;
+        const psLines = this.wrapLetterText(letter.ps, 44);
+        for (const pline of psLines) {
+          this.addTextOverlay({
+            text: pline,
+            canvasX: cx - 180,
+            canvasY: lineY,
+            color: '#cbd5e1',
+            align: 'left',
+          });
+          lineY += 20;
+        }
+      }
+
+      // Bottom Watermark Wax Stamp
+      this.addTextOverlay({
+        text: '★ SREEPARNA ♥ ISHAN • LOCKED WITH LOVE FOREVER ★',
+        canvasX: cx,
+        canvasY: cy + ph / 2 - 30,
+        color: '#facc15',
+        align: 'center',
+      });
+    }
+
+    ctx.restore();
+  }
+
+  // Text wrapper utility for love letters
+  private wrapLetterText(text: string, maxChars = 44): string[] {
+    const paragraphs = text.split('\n');
+    const result: string[] = [];
+
+    for (const para of paragraphs) {
+      if (para.trim().length === 0) {
+        result.push('');
+        continue;
+      }
+      const words = para.split(' ');
+      let currentLine = '';
+
+      for (const word of words) {
+        if ((currentLine + (currentLine ? ' ' : '') + word).length <= maxChars) {
+          currentLine += (currentLine ? ' ' : '') + word;
+        } else {
+          if (currentLine) result.push(currentLine);
+          currentLine = word;
+        }
+      }
+      if (currentLine) result.push(currentLine);
+    }
+
+    return result;
+  }
+
 
   /**
    * The Master Bouquet Composition:

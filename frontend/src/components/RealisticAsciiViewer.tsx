@@ -8,6 +8,8 @@ interface RealisticAsciiViewerProps {
   paletteMode: AsciiPaletteMode;
   title?: string;
   glow?: boolean;
+  onCanvasClick?: () => void;
+  actionHint?: string;
 }
 
 export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
@@ -15,6 +17,8 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
   paletteMode,
   title,
   glow = true,
+  onCanvasClick,
+  actionHint,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [viewMode, setViewMode] = useState<'canvas' | 'text'>('canvas');
@@ -166,11 +170,20 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
       </div>
 
       {/* Main Pitch-Black Canvas Container */}
-      <div className="relative bg-[#000000] p-4 sm:p-6 flex items-center justify-center overflow-auto min-h-[500px]">
+      <div
+        onClick={onCanvasClick}
+        className={`relative bg-[#000000] p-4 sm:p-6 flex items-center justify-center overflow-auto min-h-[500px] ${
+          onCanvasClick ? 'cursor-pointer group' : ''
+        }`}
+      >
         {viewMode === 'canvas' ? (
           <canvas
             ref={canvasRef}
-            className="max-w-full h-auto shadow-2xl block select-none cursor-grab active:cursor-grabbing"
+            className={`max-w-full h-auto shadow-2xl block select-none ${
+              onCanvasClick
+                ? 'cursor-pointer group-hover:brightness-110 transition-all'
+                : 'cursor-grab active:cursor-grabbing'
+            }`}
             style={{ imageRendering: 'pixelated' }}
           />
         ) : (
@@ -190,6 +203,13 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
           >
             {asciiData?.plainText}
           </pre>
+        )}
+
+        {actionHint && (
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-[#121212]/90 border border-white/20 text-white text-xs font-mono pointer-events-none shadow-2xl flex items-center gap-2 backdrop-blur-md animate-pulse">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>{actionHint}</span>
+          </div>
         )}
       </div>
 

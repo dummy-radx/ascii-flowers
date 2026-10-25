@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import {
   Mail,
@@ -6,110 +6,39 @@ import {
   Sparkles,
   Copy,
   Check,
-  ChevronLeft,
-  ChevronRight,
+  Play,
+  Pause,
   RotateCcw,
   Volume2,
+  ChevronLeft,
+  ChevronRight,
+  Sliders,
 } from 'lucide-react';
+import {
+  BotanicalCanvasRenderer,
+  rasterizeBouquet,
+  type AsciiPaletteMode,
+  type AsciiGridResult,
+} from '../utils/asciiEngine';
+import { RealisticAsciiViewer } from './RealisticAsciiViewer';
 import { PRESET_LOVE_LETTERS } from '../data/loveNotes';
 import { soundSynth } from '../utils/audio';
 
-type AnimationPhase = 'closed' | 'unsealing' | 'opening-flap' | 'sliding' | 'opened';
-type PaletteTheme = 'botanical' | 'amber' | 'emerald' | 'monochrome';
-type TextScale = 'normal' | 'large' | 'xlarge';
-
-const ASCII_ENVELOPE_CLOSED = [
-  '  .--------------------------------------------------.  ',
-  ' /  [AIR MAIL]                            .--------.  \\ ',
-  '|   PAR AVION    POSTAL MEADOW OF LOVE   | [♥] S+I |   |',
-  '|   SPECIAL      ETERNAL AIRMAIL 2026    |  POST   |   |',
-  '|                                         \'--------\'   |',
-  '|    \\                                            /    |',
-  '|     \\                 .------.                 /     |',
-  '|      \\               / .-..-. \\               /      |',
-  '|       \\             | ( S ♥ I) |             /       |',
-  '|        \\             \\ \'-..-\' /             /        |',
-  '|         \\             \'------\'             /         |',
-  '|          \\           [WAX SEAL]           /          |',
-  '|           \\______________________________/           |',
-  '|                                                      |',
-  '|   DELIVER TO: Sreeparna (Prettiest Blossom 🌸)       |',
-  '|   SENT FROM:  Ishan (With Everlasting Flowers 🌻)    |',
-  '|   STATUS:     [★] Sealed with Devotion & Kisses ♥    |',
-  ' \\                                                    / ',
-  '  \'--------------------------------------------------\'  ',
-];
-
-const ASCII_ENVELOPE_UNSEALING = [
-  '  .--------------------------------------------------.  ',
-  ' /  [AIR MAIL]                            .--------.  \\ ',
-  '|   PAR AVION    * * * UNSEALING... * *  | [♥] S+I |   |',
-  '|   SPECIAL      BREAKING WAX SEAL...    |  POST   |   |',
-  '|                                         \'--------\'   |',
-  '|    \\                   *  ✦  *                  /    |',
-  '|     \\                 \\.-..-./                 /     |',
-  '|      \\              --( *S ✕ I* )--            /      |',
-  '|       \\               /\'-..-\'\\                 /       |',
-  '|        \\             *  * ♥ *  *              /        |',
-  '|         \\           [SEAL BROKEN!]           /         |',
-  '|          \\__________________________________/          |',
-  '|                                                      |',
-  '|   DELIVER TO: Sreeparna (Prettiest Blossom 🌸)       |',
-  '|   SENT FROM:  Ishan (With Everlasting Flowers 🌻)    |',
-  '|   STATUS:     ✦ Wax Seal Cracked Open! ✦             |',
-  ' \\                                                    / ',
-  '  \'--------------------------------------------------\'  ',
-];
-
-const ASCII_ENVELOPE_OPENING_FLAP = [
-  '                    /\\                    ',
-  '                   /  \\                   ',
-  '                  /    \\                  ',
-  '                 /  ♥   \\                 ',
-  '                /  S+I   \\                ',
-  '               /          \\               ',
-  '              /   FLAP     \\              ',
-  '             /   OPENED     \\             ',
-  '  .---------\'                \'-------------------.  ',
-  ' /  [AIR MAIL]                            .--------.  \\ ',
-  '|   PAR AVION    POSTAL MEADOW OF LOVE   | [♥] S+I |   |',
-  '|  .--------------------------------------------.  |',
-  '|  | ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  |  |',
-  '|  |     [ LETTER SLIDING OUT... 💌 ]           |  |',
-  '|  |____________________________________________|  |',
-  '|                                                  |',
-  '|   DELIVER TO: Sreeparna (Prettiest Blossom 🌸)   |',
-  '|   SENT FROM:  Ishan (Forever Yours ♥)            |',
-  ' \\                                                / ',
-  '  \'----------------------------------------------\'  ',
-];
-
-const ASCII_ENVELOPE_SLIDING = [
-  '  .--------------------------------------------.  ',
-  '  |  [LETTER REVEALED] * FOR MY SREEPARNA      |  ',
-  '  |  >> SLIDING OUT OF ENVELOPE... 💌          |  ',
-  '  +============================================+  ',
-  '  |              .---.   .---.                 |  ',
-  '  |             (     \\ /     )                |  ',
-  '  |              )  (  ♥  )  (                 |  ',
-  '  .---------\'   (     / \\     )  \'-------------.  ',
-  ' /  [AIR MAIL]   \'---\'   \'---\'        .--------.  \\ ',
-  '|   PAR AVION    POSTAL MEADOW OF LOVE| [♥] S+I |   |',
-  '|  .--------------------------------------------.  |',
-  '|  |                                            |  |',
-  '|  |____________________________________________|  |',
-  '|   DELIVER TO: Sreeparna (Prettiest Blossom 🌸)|  |',
-  ' \\                                                / ',
-  '  \'----------------------------------------------\'  ',
-];
-
 export const LoveLetters: React.FC = () => {
   const [selectedLetter, setSelectedLetter] = useState(PRESET_LOVE_LETTERS[0]);
-  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('opened');
-  const [paletteTheme, setPaletteTheme] = useState<PaletteTheme>('botanical');
-  const [textScale, setTextScale] = useState<TextScale>('large');
+  const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('reference');
+  const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('scanline');
+  const [openProgress, setOpenProgress] = useState<number>(1.0);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [asciiData, setAsciiData] = useState<AsciiGridResult | null>(null);
   const [affirmation, setAffirmation] = useState('You are capable, radiant, and loved beyond measure. ✨');
+
+  const animationFrameRef = useRef<number | null>(null);
+  const renderer = useMemo(() => new BotanicalCanvasRenderer(520, 680), []);
+
+  const gridCols = 155;
+  const gridRows = 95;
 
   const affirmations = [
     'You are capable, radiant, and loved beyond measure. ✨',
@@ -125,60 +54,106 @@ export const LoveLetters: React.FC = () => {
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < PRESET_LOVE_LETTERS.length - 1;
 
-  // Handle Multi-stage Opening Animation
-  const handleOpenLetter = () => {
-    if (animationPhase !== 'closed') return;
-    soundSynth.playWaxCrack();
-    setAnimationPhase('unsealing');
+  // Render Love Letter onto Botanical Canvas & rasterize into ASCII matrix
+  useEffect(() => {
+    renderer.clear();
+    const cx = 260;
+    const cy = 340;
 
-    // Confetti burst for breaking the seal!
-    confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.55 },
-      colors: ['#f43f5e', '#fbbf24', '#ffffff', '#fb7185'],
-    });
+    renderer.drawLoveLetter(cx, cy, 1.0, openProgress, selectedLetter);
 
-    setTimeout(() => {
-      soundSynth.playPaperRustle();
-      setAnimationPhase('opening-flap');
-    }, 600);
+    const result = rasterizeBouquet(
+      renderer.getCanvas(),
+      {
+        width: gridCols,
+        height: gridRows,
+        paletteMode,
+        charDensity,
+        glowIntensity: 0.85,
+      },
+      renderer.getTextOverlays()
+    );
 
-    setTimeout(() => {
-      soundSynth.playBloom(2);
-      setAnimationPhase('sliding');
-    }, 1200);
+    setAsciiData(result);
+  }, [selectedLetter, openProgress, paletteMode, charDensity, renderer]);
 
-    setTimeout(() => {
-      soundSynth.playCelebration();
-      confetti({
-        particleCount: 90,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#f472b6', '#fbbf24', '#c084fc', '#38bdf8', '#ffffff'],
-      });
-      setAnimationPhase('opened');
-    }, 1850);
-  };
+  // Clean up animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    };
+  }, []);
 
-  // Handle Smooth Closing Animation
-  const handleCloseLetter = () => {
-    if (animationPhase !== 'opened') return;
-    soundSynth.playPaperRustle();
-    setAnimationPhase('sliding');
+  // Multi-phase Opening / Resealing Animation
+  const toggleAnimation = () => {
+    if (isAnimating) {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      setIsAnimating(false);
+      return;
+    }
 
-    setTimeout(() => {
-      setAnimationPhase('opening-flap');
-    }, 400);
+    const isCurrentlyClosed = openProgress < 0.5;
+    const targetProgress = isCurrentlyClosed ? 1.0 : 0.0;
+    const startProgress = openProgress;
+    const duration = 2400; // 2.4s for realistic folding motion
+    const startTime = performance.now();
 
-    setTimeout(() => {
+    setIsAnimating(true);
+
+    if (isCurrentlyClosed) {
       soundSynth.playWaxCrack();
-      setAnimationPhase('closed');
-    }, 800);
+      confetti({
+        particleCount: 55,
+        spread: 60,
+        origin: { y: 0.55 },
+        colors: ['#f43f5e', '#fbbf24', '#ffffff', '#fb7185'],
+      });
+    } else {
+      soundSynth.playPaperRustle();
+    }
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1.0, elapsed / duration);
+      // Smooth cubic ease in/out
+      const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const current = startProgress + (targetProgress - startProgress) * ease;
+
+      setOpenProgress(current);
+
+      // Sound triggers at intermediate milestones
+      if (isCurrentlyClosed) {
+        if (t >= 0.45 && t <= 0.52) soundSynth.playPaperRustle();
+        if (t >= 0.75 && t <= 0.82) soundSynth.playBloom(2);
+      } else {
+        if (t >= 0.5 && t <= 0.55) soundSynth.playPaperRustle();
+      }
+
+      if (t < 1.0) {
+        animationFrameRef.current = requestAnimationFrame(step);
+      } else {
+        setIsAnimating(false);
+        setOpenProgress(targetProgress);
+
+        if (isCurrentlyClosed) {
+          soundSynth.playCelebration();
+          confetti({
+            particleCount: 85,
+            spread: 75,
+            origin: { y: 0.6 },
+            colors: ['#f472b6', '#fbbf24', '#c084fc', '#38bdf8', '#ffffff'],
+          });
+        } else {
+          soundSynth.playWaxCrack();
+        }
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(step);
   };
 
-  const handleCopyAscii = () => {
-    const textToCopy = selectedLetter.plainAscii || selectedLetter.asciiArt || selectedLetter.message;
+  const handleCopyLetter = () => {
+    const textToCopy = `💌 ${selectedLetter.title.toUpperCase()}\n\n${selectedLetter.message}\n\nWith infinite love,\nIshan ♥\n\n${selectedLetter.ps || ''}`;
     navigator.clipboard.writeText(textToCopy);
     soundSynth.playSparkle();
     setCopied(true);
@@ -205,73 +180,19 @@ export const LoveLetters: React.FC = () => {
     }
   };
 
-  // Current envelope frame lines based on animation phase
-  const getEnvelopeLines = () => {
-    switch (animationPhase) {
-      case 'unsealing':
-        return ASCII_ENVELOPE_UNSEALING;
-      case 'opening-flap':
-        return ASCII_ENVELOPE_OPENING_FLAP;
-      case 'sliding':
-        return ASCII_ENVELOPE_SLIDING;
-      case 'closed':
-      default:
-        return ASCII_ENVELOPE_CLOSED;
-    }
-  };
-
-  // Resolve font size class based on textScale
-  const getLetterSizeClass = () => {
-    switch (textScale) {
-      case 'xlarge':
-        return 'text-[14px] sm:text-[15.5px] md:text-[16px] leading-[18px] sm:leading-[20px] md:leading-[21px]';
-      case 'large':
-        return 'text-[12.5px] sm:text-[13.5px] md:text-[14px] leading-[16px] sm:leading-[17.5px] md:leading-[18px]';
-      case 'normal':
-      default:
-        return 'text-[11px] sm:text-[12px] leading-[14px] sm:leading-[15.5px]';
-    }
-  };
-
-  // Colorize letter lines for botanical mode
-  const colorizeLetterLine = (line: string): string => {
-    if (paletteTheme !== 'botanical') return line;
-
-    return line
-      .replace(/(\.---+|\+===+|'---+|\|  ===+|\|  \.\.\.\.+)/g, '<span style="color:#64748b">$1</span>')
-      .replace(/(\[LETTER #[0-9]+\])/g, '<span style="color:#fbbf24; font-weight:bold">$1</span>')
-      .replace(/(>> [A-Z ]+:)/g, '<span style="color:#f472b6; font-weight:bold">$1</span>')
-      .replace(/(♥|✿|❀|❁|✦|★)/g, '<span style="color:#fb7185; font-weight:bold">$1</span>')
-      .replace(/(SREEPARNA|S \+ I|S ♥ I)/g, '<span style="color:#ffffff; font-weight:bold">$1</span>')
-      .replace(/(ISHAN|Ishan)/g, '<span style="color:#fde047; font-weight:bold">$1</span>')
-      .replace(/(".*?")/g, '<span style="color:#fef08a">$1</span>');
-  };
-
-  // Envelope colorizer
-  const colorizeEnvelopeLine = (line: string): string => {
-    return line
-      .replace(/(\[AIR MAIL\]|PAR AVION|POSTAL MEADOW OF LOVE)/g, '<span style="color:#38bdf8">$1</span>')
-      .replace(/(\[\♥\] S\+I|POST)/g, '<span style="color:#fbbf24">$1</span>')
-      .replace(/(♥)/g, '<span style="color:#f43f5e; font-weight:bold">$1</span>')
-      .replace(/(\( S ♥ I\)|\[WAX SEAL\]|\[CRIMSON WAX\])/g, '<span style="color:#f43f5e; font-weight:bold">$1</span>')
-      .replace(/(\*S ✕ I\*|\[SEAL BROKEN!\]|✦ Wax Seal Cracked Open! ✦)/g, '<span style="color:#fbbf24; font-weight:bold">$1</span>')
-      .replace(/(DELIVER TO: Sreeparna \(Prettiest Blossom 🌸\))/g, '<span style="color:#f472b6">$1</span>')
-      .replace(/(SENT FROM:  Ishan \(With Everlasting Flowers 🌻\))/g, '<span style="color:#fbbf24">$1</span>');
-  };
-
   return (
-    <div className="max-w-5xl mx-auto space-y-6 font-mono pb-12">
+    <div className="space-y-6 font-mono pb-12">
       {/* Postal Header */}
       <div className="bg-[#080808] border border-[#222222] rounded-2xl p-5 sm:p-6 text-center shadow-2xl relative overflow-hidden">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#141414] border border-[#262626] text-white text-xs mb-2">
           <Mail className="w-3.5 h-3.5 text-pink-400" />
-          <span>VINTAGE POSTAL MEADOW • SPECIAL AIRMAIL</span>
+          <span>VINTAGE POSTAL MEADOW • REALISTIC ASCII LETTERS</span>
         </div>
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide">
-          LETTERS & SWEET NOTES FOR SREEPARNA
+          LOVE LETTERS & SWEET NOTES FOR SREEPARNA
         </h2>
         <p className="text-xs sm:text-sm text-[#888888] mt-1.5 max-w-lg mx-auto">
-          Folded letters sealed with an authentic ASCII wax stamp. Tap to break the seal and unfold the letter.
+          Authentic folded airmail letters with wax seals and glowing ASCII romantic typography.
         </p>
       </div>
 
@@ -298,8 +219,85 @@ export const LoveLetters: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Letter Selector & Controls */}
-        <div className="lg:col-span-4 space-y-4">
+        {/* Left Control Column */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Interactive Folding & Unfolding Physics Controller */}
+          <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#1c1c1c]">
+              <span className="text-[11px] tracking-wider uppercase text-white font-bold flex items-center gap-1.5">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    openProgress >= 0.6 ? 'bg-pink-400' : 'bg-amber-400'
+                  } animate-pulse`}
+                />
+                <span>Envelope & Letter Physics</span>
+              </span>
+              <span className="text-[10px] text-pink-400 font-bold px-2 py-0.5 rounded-full bg-pink-950/40 border border-pink-900/50">
+                {openProgress >= 0.6 ? 'UNFOLDED LETTER (100%)' : 'SEALED ENVELOPE (0%)'}
+              </span>
+            </div>
+
+            {/* Animation Toggle Button */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleAnimation}
+                className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${
+                  openProgress >= 0.6
+                    ? 'bg-neutral-800 hover:bg-neutral-700 text-white border border-[#333333]'
+                    : 'bg-white hover:bg-neutral-200 text-black border border-white'
+                }`}
+              >
+                {isAnimating ? (
+                  <>
+                    <Pause className="w-3.5 h-3.5 fill-current" />
+                    <span>{openProgress < 0.5 ? 'Unfolding...' : 'Resealing...'}</span>
+                  </>
+                ) : openProgress >= 0.6 ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Fold & Reseal Envelope ✉️</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Break Wax Seal & Unfold 💌</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  soundSynth.playSparkle();
+                  setOpenProgress(openProgress >= 0.6 ? 0.0 : 1.0);
+                }}
+                className="p-2.5 rounded-lg bg-[#141414] hover:bg-[#202020] text-white border border-[#262626] transition-all"
+                title={openProgress >= 0.6 ? 'Instant Seal' : 'Instant Unfold'}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Real-Time Interactive Unfold Slider */}
+            <div>
+              <div className="flex justify-between text-[10px] text-[#888888] mb-1">
+                <span>0% Sealed Wax</span>
+                <span>50% Flap Lift</span>
+                <span>100% Unfolded Letter</span>
+              </div>
+              <input
+                type="range"
+                min={0.0}
+                max={1.0}
+                step={0.02}
+                value={openProgress}
+                onChange={(e) => {
+                  setOpenProgress(parseFloat(e.target.value));
+                }}
+                className="w-full accent-white bg-[#222222]"
+              />
+            </div>
+          </div>
+
           {/* Letter Selection Menu */}
           <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-2">
             <div className="pb-2 mb-2 border-b border-[#1c1c1c] flex items-center justify-between">
@@ -321,10 +319,8 @@ export const LoveLetters: React.FC = () => {
                     onClick={() => {
                       setSelectedLetter(letter);
                       soundSynth.playSparkle();
-                      // If closed, open smoothly to show the selected letter
-                      if (animationPhase === 'closed') {
-                        setAnimationPhase('opened');
-                      }
+                      // Auto unfold to reveal the letter
+                      setOpenProgress(1.0);
                     }}
                     className={`w-full p-3 rounded-lg border text-left transition-all ${
                       isSelected
@@ -338,7 +334,7 @@ export const LoveLetters: React.FC = () => {
                       </span>
                       {isSelected && (
                         <span className="text-[9px] px-1.5 py-0.2 rounded bg-black text-white font-bold">
-                          READING
+                          ACTIVE
                         </span>
                       )}
                     </div>
@@ -349,74 +345,8 @@ export const LoveLetters: React.FC = () => {
                 );
               })}
             </div>
-          </div>
 
-          {/* Letter Toolbar Controls */}
-          <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3">
-            <span className="text-[11px] text-[#888888] uppercase block pb-1 border-b border-[#1c1c1c] font-bold">
-              Letter Display Options
-            </span>
-
-            {/* Text Scale Buttons */}
-            <div>
-              <div className="text-[10px] text-[#777777] mb-1.5 uppercase">
-                Text ASCII Size:
-              </div>
-              <div className="grid grid-cols-3 gap-1.5 text-xs">
-                {[
-                  { id: 'normal', label: 'Medium' },
-                  { id: 'large', label: 'Large' },
-                  { id: 'xlarge', label: 'X-Large' },
-                ].map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      setTextScale(s.id as TextScale);
-                      soundSynth.playSparkle();
-                    }}
-                    className={`py-1.5 rounded border text-center transition-all ${
-                      textScale === s.id
-                        ? 'bg-white text-black font-bold border-white'
-                        : 'bg-[#121212] border-[#222222] text-[#888888] hover:text-white'
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Color Mode Palette */}
-            <div>
-              <div className="text-[10px] text-[#777777] mb-1.5 uppercase">
-                Color Mode:
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                {[
-                  { id: 'botanical', label: 'Botanical Glow' },
-                  { id: 'amber', label: 'Amber CRT' },
-                  { id: 'emerald', label: 'Emerald Matrix' },
-                  { id: 'monochrome', label: 'Silver Wire' },
-                ].map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      setPaletteTheme(p.id as PaletteTheme);
-                      soundSynth.playSparkle();
-                    }}
-                    className={`p-2 rounded border text-left transition-all ${
-                      paletteTheme === p.id
-                        ? 'bg-white text-black font-bold border-white'
-                        : 'bg-[#121212] border-[#222222] text-[#888888] hover:text-white'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Navigation Buttons */}
+            {/* Letter Prev/Next Controls */}
             <div className="pt-2 border-t border-[#1c1c1c] flex items-center justify-between gap-2">
               <button
                 onClick={handlePrevLetter}
@@ -428,7 +358,7 @@ export const LoveLetters: React.FC = () => {
                 }`}
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Prev</span>
+                <span>Previous Letter</span>
               </button>
               <button
                 onClick={handleNextLetter}
@@ -439,190 +369,135 @@ export const LoveLetters: React.FC = () => {
                     : 'bg-[#0a0a0a] border-[#181818] text-[#444444] cursor-not-allowed'
                 }`}
               >
-                <span>Next</span>
+                <span>Next Letter</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Interactive Envelope & Unfolded ASCII Letter */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="bg-[#080808] border border-[#222222] rounded-2xl p-4 sm:p-6 shadow-2xl relative space-y-4">
-            {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#1c1c1c]">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-pink-400 animate-pulse" />
-                <span className="text-xs font-bold text-white uppercase tracking-wider">
-                  {animationPhase === 'opened' ? 'ASCII LOVE LETTER • UNSEALED' : 'AIRMAIL ENVELOPE • SEALED'}
-                </span>
-                <span className="text-[10px] text-pink-400 font-bold px-2 py-0.5 rounded-full bg-pink-950/40 border border-pink-900/50">
-                  {selectedLetter.badge}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopyAscii}
-                  className="text-xs px-2.5 py-1 rounded bg-[#141414] hover:bg-[#222222] border border-[#2a2a2a] text-white flex items-center gap-1.5 transition-all"
-                  title="Copy ASCII Letter to Clipboard"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400 font-bold">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy ASCII Letter</span>
-                    </>
-                  )}
-                </button>
-
-                {animationPhase === 'opened' ? (
-                  <button
-                    onClick={handleCloseLetter}
-                    className="text-xs px-3 py-1 rounded bg-white text-black hover:bg-neutral-200 font-bold flex items-center gap-1.5 transition-all shadow"
-                    title="Fold and reseal letter back into envelope"
-                  >
-                    <span>Reseal Envelope ✉️</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleOpenLetter}
-                    disabled={animationPhase !== 'closed'}
-                    className="text-xs px-3 py-1 rounded bg-amber-400 hover:bg-amber-300 text-black font-extrabold flex items-center gap-1.5 transition-all shadow-lg animate-pulse"
-                    title="Break wax seal and open letter"
-                  >
-                    <span>Break Wax Seal 💌</span>
-                  </button>
-                )}
-              </div>
+          {/* Quick Copy & Audio Action Card */}
+          <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-2.5">
+            <div className="flex items-center justify-between pb-2 border-b border-[#1c1c1c]">
+              <span className="text-[11px] text-[#888888] uppercase font-bold">
+                Letter Actions
+              </span>
+              <span className="text-[10px] text-amber-400">
+                To Sreeparna With Love ♥
+              </span>
             </div>
 
-            {/* Interactive Envelope (when not opened, or for clicking) */}
-            {animationPhase !== 'opened' ? (
-              <div
-                onClick={animationPhase === 'closed' ? handleOpenLetter : undefined}
-                className={`group bg-[#000000] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center transition-all overflow-x-auto shadow-inner ${
-                  animationPhase === 'closed'
-                    ? 'cursor-pointer hover:border-pink-400/80 border-[#222222]'
-                    : 'border-amber-400/50'
-                }`}
-                title={animationPhase === 'closed' ? 'Click to break wax seal & unfold letter!' : 'Opening letter...'}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button
+                onClick={handleCopyLetter}
+                className="p-2.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] text-white flex items-center justify-center gap-1.5 transition-all"
+                title="Copy full love letter text to clipboard"
               >
-                <pre
-                  className={`font-mono select-none transition-all ${
-                    textScale === 'xlarge'
-                      ? 'text-[13.5px] sm:text-[14.5px] leading-[17px] sm:leading-[18.5px]'
-                      : textScale === 'large'
-                      ? 'text-[12px] sm:text-[13px] leading-[15px] sm:leading-[16.5px]'
-                      : 'text-[10.5px] sm:text-[11.5px] leading-[13px] sm:leading-[14.5px]'
-                  }`}
-                  style={{
-                    color:
-                      paletteTheme === 'amber'
-                        ? '#fbbf24'
-                        : paletteTheme === 'emerald'
-                        ? '#34d399'
-                        : '#ffffff',
-                  }}
-                >
-                  {getEnvelopeLines().map((line, i) => (
-                    <div
-                      key={i}
-                      dangerouslySetInnerHTML={{
-                        __html: paletteTheme === 'botanical' ? colorizeEnvelopeLine(line) : line,
-                      }}
-                    />
-                  ))}
-                </pre>
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400 font-bold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Letter</span>
+                  </>
+                )}
+              </button>
 
-                <div className="mt-4 text-xs font-mono flex items-center gap-2">
-                  {animationPhase === 'closed' ? (
-                    <span className="text-amber-400 font-bold group-hover:text-white flex items-center gap-1.5 animate-pulse">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span>[ Tap wax seal to break & open letter ]</span>
-                    </span>
-                  ) : (
-                    <span className="text-pink-400 font-bold flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-pink-400 animate-spin" />
-                      <span>Unfolding Sreeparna's letter... ✨</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* FULL OPENED LOVE LETTER IN VINTAGE ASCII CARD STYLE */
-              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
-                {/* ASCII Letter Card Render */}
-                <div className="bg-[#000000] border border-[#222222] rounded-xl p-4 sm:p-5 overflow-x-auto shadow-2xl relative">
-                  <pre
-                    className={`font-mono select-all whitespace-pre tracking-tight transition-all ${getLetterSizeClass()}`}
-                    style={{
-                      color:
-                        paletteTheme === 'amber'
-                          ? '#fbbf24'
-                          : paletteTheme === 'emerald'
-                          ? '#34d399'
-                          : paletteTheme === 'monochrome'
-                          ? '#f8fafc'
-                          : '#e2e8f0',
-                      textShadow:
-                        paletteTheme === 'amber'
-                          ? '0 0 10px rgba(251,191,36,0.2)'
-                          : paletteTheme === 'emerald'
-                          ? '0 0 10px rgba(52,211,153,0.2)'
-                          : 'none',
-                    }}
-                  >
-                    {(selectedLetter.asciiArt || selectedLetter.plainAscii || selectedLetter.message)
-                      .split('\n')
-                      .map((line, i) => (
-                        <div
-                          key={i}
-                          dangerouslySetInnerHTML={{
-                            __html: colorizeLetterLine(line),
-                          }}
-                        />
-                      ))}
-                  </pre>
-                </div>
-
-                {/* Bottom Action Tray */}
-                <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-[#0d0d0d] border border-[#222222] rounded-xl text-xs">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        soundSynth.playBloom(3);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] text-white border border-[#262626] flex items-center gap-1.5 transition-all"
-                      title="Play sweet love chime"
-                    >
-                      <Volume2 className="w-3.5 h-3.5 text-pink-400" />
-                      <span>Play Chime ✨</span>
-                    </button>
-                    <button
-                      onClick={handleCopyAscii}
-                      className="px-3 py-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] text-white border border-[#262626] flex items-center gap-1.5 transition-all"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>{copied ? 'Copied to Clipboard!' : 'Copy ASCII'}</span>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={handleCloseLetter}
-                    className="px-3 py-1.5 rounded-lg bg-white text-black hover:bg-neutral-200 font-bold flex items-center gap-1.5 transition-all shadow"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Fold & Reseal Envelope ✉️</span>
-                  </button>
-                </div>
-              </div>
-            )}
+              <button
+                onClick={() => {
+                  soundSynth.playCelebration();
+                  confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.6 },
+                    colors: ['#f472b6', '#fbbf24', '#ffffff'],
+                  });
+                }}
+                className="p-2.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] text-white flex items-center justify-center gap-1.5 transition-all"
+                title="Play celebration audio & confetti"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-pink-400" />
+                <span>Play Chime ✨</span>
+              </button>
+            </div>
           </div>
+
+          {/* Chromatic Display Mode */}
+          <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-2 text-xs">
+            <span className="text-[11px] text-[#888888] uppercase block pb-1 border-b border-[#1c1c1c]">
+              Chromatic Display Mode
+            </span>
+            <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+              {[
+                { id: 'reference', label: 'Reference Vivid' },
+                { id: 'emerald', label: 'Emerald Glow' },
+                { id: 'amber', label: 'Amber Gold CRT' },
+                { id: 'monochrome', label: 'Silver Wireframe' },
+                { id: 'amethyst', label: 'Pastel Lavender' },
+              ].map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setPaletteMode(p.id as AsciiPaletteMode);
+                    soundSynth.playSparkle();
+                  }}
+                  className={`p-2 rounded border text-left transition-all ${
+                    paletteMode === p.id
+                      ? 'bg-white text-black font-bold border-white'
+                      : 'bg-[#121212] border-[#222222] text-[#888888] hover:text-white'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Character Density */}
+          <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-2 text-xs">
+            <span className="text-[11px] text-[#888888] uppercase block pb-1 border-b border-[#1c1c1c]">
+              Character Scanline Density
+            </span>
+            <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+              {[
+                { id: 'scanline', label: 'Scanline Ramps (Img 1)' },
+                { id: 'matrix', label: 'Matrix Dot Grid' },
+                { id: 'dense', label: 'High Density' },
+                { id: 'fine', label: 'Micro Typo' },
+              ].map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => {
+                    setCharDensity(d.id as 'scanline' | 'fine' | 'matrix' | 'dense');
+                    soundSynth.playSparkle();
+                  }}
+                  className={`p-2 rounded border text-left transition-all ${
+                    charDensity === d.id
+                      ? 'bg-white text-black font-bold border-white'
+                      : 'bg-[#121212] border-[#222222] text-[#888888] hover:text-white'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Canvas Column: Realistic Glowing ASCII Viewer (Matching Bouquet Page!) */}
+        <div className="lg:col-span-7">
+          <RealisticAsciiViewer
+            asciiData={asciiData}
+            paletteMode={paletteMode}
+            title={
+              openProgress >= 0.6
+                ? `LOVE LETTER: ${selectedLetter.title.toUpperCase()}`
+                : 'SEALED AIRMAIL ENVELOPE: FOR SREEPARNA'
+            }
+            glow={true}
+          />
         </div>
       </div>
     </div>
