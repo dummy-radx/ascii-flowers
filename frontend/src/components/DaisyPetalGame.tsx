@@ -107,20 +107,6 @@ export const DaisyPetalGame: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 font-mono pb-8">
-      {/* Title Card */}
-      <div className="bg-[#080808] border border-[#222222] rounded-xl p-5 sm:p-6 text-center shadow-xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#141414] border border-[#262626] text-white text-xs mb-2">
-          <Sparkles className="w-3.5 h-3.5 text-white" />
-          <span>DAISY PETAL ORACLE</span>
-        </div>
-        <h2 className="text-lg sm:text-2xl font-bold text-white tracking-wide">
-          "I LOVE YOU... I LOVE YOU MORE"
-        </h2>
-        <p className="text-xs sm:text-sm text-[#888888] mt-1.5 max-w-md mx-auto">
-          Pluck each daisy petal to reveal 10 reasons why I love you, Sreeparna.
-        </p>
-      </div>
-
       {/* Main Daisy Oracle Showcase Card */}
       <div className="bg-[#080808] border border-[#222222] rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col items-center justify-center relative min-h-[480px]">
         {/* Status Verdict Header */}

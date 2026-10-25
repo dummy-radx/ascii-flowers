@@ -28,7 +28,7 @@ export const LoveLetters: React.FC = () => {
   const [selectedLetter, setSelectedLetter] = useState(PRESET_LOVE_LETTERS[0]);
   const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('reference');
   const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('scanline');
-  const [openProgress, setOpenProgress] = useState<number>(1.0);
+  const [openProgress, setOpenProgress] = useState<number>(0.0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [asciiData, setAsciiData] = useState<AsciiGridResult | null>(null);
@@ -168,15 +168,21 @@ export const LoveLetters: React.FC = () => {
 
   const handlePrevLetter = () => {
     if (hasPrev) {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      setIsAnimating(false);
       soundSynth.playSparkle();
       setSelectedLetter(PRESET_LOVE_LETTERS[currentIdx - 1]);
+      setOpenProgress(0.0);
     }
   };
 
   const handleNextLetter = () => {
     if (hasNext) {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      setIsAnimating(false);
       soundSynth.playSparkle();
       setSelectedLetter(PRESET_LOVE_LETTERS[currentIdx + 1]);
+      setOpenProgress(0.0);
     }
   };
 
@@ -317,10 +323,11 @@ export const LoveLetters: React.FC = () => {
                   <button
                     key={letter.id}
                     onClick={() => {
+                      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+                      setIsAnimating(false);
                       setSelectedLetter(letter);
+                      setOpenProgress(0.0);
                       soundSynth.playSparkle();
-                      // Auto unfold to reveal the letter
-                      setOpenProgress(1.0);
                     }}
                     className={`w-full p-3 rounded-lg border text-left transition-all ${
                       isSelected
@@ -494,9 +501,15 @@ export const LoveLetters: React.FC = () => {
             title={
               openProgress >= 0.6
                 ? `LOVE LETTER: ${selectedLetter.title.toUpperCase()}`
-                : 'SEALED AIRMAIL ENVELOPE: FOR SREEPARNA'
+                : `SEALED WAX ENVELOPE: ${selectedLetter.badge.toUpperCase()}`
             }
             glow={true}
+            onCanvasClick={openProgress < 0.6 ? toggleAnimation : undefined}
+            actionHint={
+              openProgress < 0.6
+                ? '💌 Click envelope or wax seal to break & open letter ✨'
+                : undefined
+            }
           />
         </div>
       </div>

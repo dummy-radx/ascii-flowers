@@ -32,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'meadow', label: 'CLICK MEADOW' },
     { id: 'oracle', label: 'DAISY ORACLE' },
     { id: 'letters', label: 'LOVE LETTERS' },
-    { id: 'radio', label: '📻 ASCII RADIO' },
+    { id: 'radio', label: 'ASCII RADIO' },
   ];
 
   return (
