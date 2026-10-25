@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, type MouseEvent } from 'react';
-import { Sparkles, Trash2, Sun, Moon, Wand2, Flower } from 'lucide-react';
+import { Trash2, Wand2, Flower } from 'lucide-react';
 import { soundSynth } from '../utils/audio';
 
 interface PlantedItem {
@@ -124,7 +124,6 @@ const MINI_ASCII_BLOOMS = [
 export const ClickMeadow: React.FC = () => {
   const [items, setItems] = useState<PlantedItem[]>([]);
   const [selectedTool, setSelectedTool] = useState<string>('random');
-  const [meadowTime, setMeadowTime] = useState<'midnight' | 'twilight' | 'sunrise'>('midnight');
   const [mouseTrail, setMouseTrail] = useState<{ x: number; y: number; char: string; id: number }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -267,43 +266,36 @@ export const ClickMeadow: React.FC = () => {
   };
 
   // Sky themes
-  const bgGradient =
-    meadowTime === 'midnight'
-      ? 'from-[#0b0c16] via-[#101428] to-[#0a1f18]'
-      : meadowTime === 'twilight'
-      ? 'from-[#1e1338] via-[#2f184b] to-[#122822]'
-      : 'from-[#3b1d36] via-[#522938] to-[#1a3828]';
-
   return (
-    <div className="space-y-4">
-      {/* Top Controls Toolbar */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4 font-mono">
+      {/* Top Controls Toolbar (Pure Minimalist B&W) */}
+      <div className="bg-[#080808] border border-[#222222] rounded-xl p-3 sm:p-4 shadow-xl flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Flower Selection Tools */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-mono font-bold text-emerald-400 mr-2 flex items-center gap-1">
-            <Flower className="w-4 h-4" />
-            <span>Plant Tool:</span>
+          <span className="text-[#888888] font-bold mr-1 flex items-center gap-1">
+            <Flower className="w-3.5 h-3.5 text-white" />
+            <span>BRUSH:</span>
           </span>
 
           <button
             onClick={() => setSelectedTool('random')}
-            className={`px-3 py-1 rounded-xl text-xs font-mono transition-all ${
+            className={`px-2.5 py-1 rounded text-xs transition-all ${
               selectedTool === 'random'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-md shadow-emerald-500/30'
-                : 'bg-slate-800 text-slate-300 hover:text-white'
+                ? 'bg-white text-black font-bold'
+                : 'bg-[#141414] text-[#888888] hover:text-white border border-[#222222]'
             }`}
           >
-            ✨ Surprise Mix
+            ✦ Mixed Wildflowers
           </button>
 
           {MINI_ASCII_BLOOMS.map((tool) => (
             <button
               key={tool.type}
               onClick={() => setSelectedTool(tool.type)}
-              className={`px-2.5 py-1 rounded-xl text-xs font-mono flex items-center gap-1 transition-all ${
+              className={`px-2.5 py-1 rounded text-xs flex items-center gap-1 transition-all ${
                 selectedTool === tool.type
-                  ? 'bg-slate-700 text-white border border-slate-500 font-bold'
-                  : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'
+                  ? 'bg-white text-black font-bold'
+                  : 'bg-[#141414] text-[#888888] hover:text-white border border-[#222222]'
               }`}
             >
               <span>{tool.symbol}</span>
@@ -312,51 +304,20 @@ export const ClickMeadow: React.FC = () => {
           ))}
         </div>
 
-        {/* Meadow Atmosphere & Actions */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* Time of Day */}
-          <div className="flex items-center bg-slate-950/80 border border-slate-700/60 rounded-xl p-0.5">
-            <button
-              onClick={() => setMeadowTime('sunrise')}
-              title="Golden Dusk/Sunrise"
-              className={`p-1.5 rounded-lg text-xs ${
-                meadowTime === 'sunrise' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-slate-500'
-              }`}
-            >
-              <Sun className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setMeadowTime('twilight')}
-              title="Pastel Twilight"
-              className={`p-1.5 rounded-lg text-xs ${
-                meadowTime === 'twilight' ? 'bg-purple-500/20 text-purple-300 font-bold' : 'text-slate-500'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setMeadowTime('midnight')}
-              title="Starry Midnight"
-              className={`p-1.5 rounded-lg text-xs ${
-                meadowTime === 'midnight' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-500'
-              }`}
-            >
-              <Moon className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
           <button
             onClick={handleBloomEntireMeadow}
-            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all"
+            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-200 text-black font-bold text-xs flex items-center gap-1.5 shadow transition-all"
           >
             <Wand2 className="w-3.5 h-3.5" />
-            <span>Bloom Field!</span>
+            <span>Bloom Field (30x)</span>
           </button>
 
           <button
             onClick={handleClearMeadow}
             disabled={items.length === 0}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] text-[#888888] hover:text-white border border-[#262626] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             title="Clear flowers"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -364,12 +325,12 @@ export const ClickMeadow: React.FC = () => {
         </div>
       </div>
 
-      {/* Interactive Meadow Canvas */}
+      {/* Interactive Meadow Canvas (Pure Pitch Black) */}
       <div
         ref={containerRef}
         onClick={handleCanvasClick}
         onMouseMove={handleMouseMove}
-        className={`relative w-full h-[580px] rounded-2xl border-2 border-emerald-500/30 overflow-hidden cursor-crosshair select-none bg-gradient-to-b ${bgGradient} shadow-2xl transition-all duration-700`}
+        className="relative w-full h-[580px] rounded-xl border border-[#222222] overflow-hidden cursor-crosshair select-none bg-[#000000] shadow-2xl transition-all"
       >
         {/* Floating Background Stars & Clouds */}
         <div className="absolute inset-0 pointer-events-none opacity-40 font-mono text-xs text-sky-300">

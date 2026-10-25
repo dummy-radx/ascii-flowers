@@ -1,489 +1,436 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, Copy, Check, Heart, RefreshCw, Eye, Plus, Minus, Wand2, Share2 } from 'lucide-react';
-import { FLOWERS, WRAPPERS } from '../data/flowers';
-import { type BouquetConfig, DEFAULT_BOUQUET_CONFIG, generateMixedBouquet } from '../data/bouquetEngine';
-import { AsciiRenderer } from './AsciiRenderer';
+import { RefreshCw, Wand2, Sliders, Layers } from 'lucide-react';
+import {
+  BotanicalCanvasRenderer,
+  rasterizeBouquet,
+  type BouquetComposition,
+  type AsciiPaletteMode,
+  type AsciiGridResult,
+} from '../utils/asciiEngine';
+import { RealisticAsciiViewer } from './RealisticAsciiViewer';
 import { soundSynth } from '../utils/audio';
-import type { FlowerData } from '../types';
 
 export const BouquetBuilder: React.FC = () => {
-  const [config, setConfig] = useState<BouquetConfig>(DEFAULT_BOUQUET_CONFIG);
-  const [copied, setCopied] = useState(false);
-  const [copiedMessage, setCopiedMessage] = useState(false);
-  const [selectedInspectFlower, setSelectedInspectFlower] = useState<FlowerData | null>(null);
-  const [animationStyle, setAnimationStyle] = useState<'sway' | 'bounce' | 'glow' | 'none'>('sway');
+  const [comp, setComp] = useState<BouquetComposition>({
+    sunflower: 1,
+    daisy: 2,
+    lily: 4,
+    tulip: 2,
+    lavender: 2,
+    density: 'ultra',
+    renderStyle: 'scanline',
+  });
 
-  const bouquetResult = generateMixedBouquet(config);
+  const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('reference');
+  const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('scanline');
+  const [gridCols, setGridCols] = useState<number>(170);
+  const [gridRows, setGridRows] = useState<number>(95);
+  const [glow, setGlow] = useState<boolean>(true);
+  const [asciiData, setAsciiData] = useState<AsciiGridResult | null>(null);
 
-  const handleFlowerCountChange = (flowerId: string, delta: number) => {
-    setConfig((prev) => {
-      const current = (prev as unknown as Record<string, number>)[flowerId] || 0;
-      const next = Math.max(0, Math.min(8, current + delta));
-      if (delta > 0) {
-        soundSynth.playBloom(next);
-      } else {
-        soundSynth.playPluck();
-      }
-      return {
-        ...prev,
-        [flowerId]: next,
-      };
+  // Instantiated renderer
+  const renderer = useMemo(() => new BotanicalCanvasRenderer(520, 640), []);
+
+  // Generate realistic ASCII bouquet whenever parameters change
+  useEffect(() => {
+    renderer.drawReferenceBouquet(comp);
+    const result = rasterizeBouquet(renderer.getCanvas(), {
+      width: gridCols,
+      height: gridRows,
+      paletteMode,
+      charDensity,
+      glowIntensity: glow ? 0.8 : 0,
     });
-  };
+    setAsciiData(result);
+  }, [comp, paletteMode, charDensity, gridCols, gridRows, glow, renderer]);
 
-  const handleRandomSurprise = () => {
+  const handleSurpriseMix = () => {
     soundSynth.playSparkle();
-    const randomConfig: BouquetConfig = {
-      ...config,
-      sunflower: Math.floor(Math.random() * 3) + 1,
+    setComp((prev) => ({
+      ...prev,
+      sunflower: Math.random() > 0.4 ? 1 : 0,
+      lily: Math.floor(Math.random() * 3) + 2,
+      tulip: Math.floor(Math.random() * 3) + 1,
+      lavender: Math.floor(Math.random() * 3) + 1,
       daisy: Math.floor(Math.random() * 3) + 1,
-      lily: Math.floor(Math.random() * 3) + 1,
-      tulip: Math.floor(Math.random() * 3),
-      lavender: Math.floor(Math.random() * 4) + 1,
-      forgetmenot: Math.floor(Math.random() * 3),
-      orchid: Math.floor(Math.random() * 2),
-      wrapperId: WRAPPERS[Math.floor(Math.random() * WRAPPERS.length)].id,
-    };
-    setConfig(randomConfig);
-  };
-
-  const applyPreset = (presetName: string) => {
-    soundSynth.playSparkle();
-    if (presetName === 'sunlight') {
-      setConfig((prev) => ({
-        ...prev,
-        sunflower: 3,
-        daisy: 4,
-        lily: 0,
-        tulip: 0,
-        lavender: 3,
-        forgetmenot: 1,
-        orchid: 0,
-        wrapperId: 'ribbon',
-        customMessage: 'You are my sunshine on the rainiest days!',
-      }));
-    } else if (presetName === 'starlight') {
-      setConfig((prev) => ({
-        ...prev,
-        sunflower: 0,
-        daisy: 2,
-        lily: 3,
-        tulip: 0,
-        lavender: 2,
-        forgetmenot: 3,
-        orchid: 2,
-        wrapperId: 'glass',
-        customMessage: 'As rare and luminous as a shooting star.',
-      }));
-    } else if (presetName === 'cottage') {
-      setConfig((prev) => ({
-        ...prev,
-        sunflower: 2,
-        daisy: 3,
-        lily: 2,
-        tulip: 2,
-        lavender: 2,
-        forgetmenot: 2,
-        orchid: 0,
-        wrapperId: 'kraft',
-        customMessage: 'A sweet meadow gathered just for my sweetheart.',
-      }));
-    } else if (presetName === 'meadow') {
-      setConfig((prev) => ({
-        ...prev,
-        sunflower: 2,
-        daisy: 4,
-        lily: 1,
-        tulip: 2,
-        lavender: 4,
-        forgetmenot: 2,
-        orchid: 1,
-        wrapperId: 'basket',
-        customMessage: 'Handcrafted with all my love for Sreeparna!',
-      }));
-    }
+    }));
   };
 
   const handleCelebrate = () => {
     soundSynth.playCelebration();
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 70,
+      spread: 60,
       origin: { y: 0.6 },
-      colors: ['#fbbf24', '#f472b6', '#38bdf8', '#c084fc', '#facc15', '#4ade80'],
+      colors: ['#ffffff', '#fbbf24', '#f43f5e', '#a855f7', '#34d399'],
     });
-  };
-
-  const handleCopyAscii = () => {
-    soundSynth.playSparkle();
-    navigator.clipboard.writeText(bouquetResult.plainText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2200);
-  };
-
-  const handleCopyShareableMessage = () => {
-    soundSynth.playSparkle();
-    const shareText = `💐 A Special ASCII Bouquet For Sreeparna 💐\n\n${bouquetResult.plainText}\n\n🌸 Made with love on your ASCII Flower Playground! ✨`;
-    navigator.clipboard.writeText(shareText);
-    setCopiedMessage(true);
-    setTimeout(() => setCopiedMessage(false), 2200);
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      {/* Left Control Panel: Flower Picker, Wrappers, Notes */}
-      <div className="lg:col-span-5 space-y-5">
-        {/* Quick Presets */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
+      {/* Left Control Panel: Pure Minimalist Black & White */}
+      <div className="lg:col-span-4 space-y-4">
+        {/* Preset Presets Box */}
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl">
+          <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#1c1c1c]">
+            <span className="text-[11px] font-mono tracking-wider uppercase text-[#888888] flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-white" />
               <span>Bouquet Presets</span>
-            </h3>
+            </span>
             <button
-              onClick={handleRandomSurprise}
-              className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1 transition-colors font-mono"
+              onClick={handleSurpriseMix}
+              className="text-[11px] font-mono text-[#aaaaaa] hover:text-white flex items-center gap-1 transition-colors"
             >
               <RefreshCw className="w-3 h-3" />
               <span>Surprise Mix</span>
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
             <button
-              onClick={() => applyPreset('sunlight')}
-              className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-400 text-left transition-all group"
+              onClick={() => {
+                soundSynth.playBloom(0);
+                setComp({
+                  sunflower: 1,
+                  daisy: 2,
+                  lily: 4,
+                  tulip: 2,
+                  lavender: 2,
+                  density: 'ultra',
+                  renderStyle: 'scanline',
+                });
+                setPaletteMode('reference');
+                setCharDensity('scanline');
+              }}
+              className="p-2.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] border border-[#262626] text-left transition-all text-white"
             >
-              <div className="text-xs font-semibold text-amber-300 flex items-center gap-1">
-                <span>🌻 Sunshine Meadow</span>
-              </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">Sunflowers & Daisies</div>
+              <div className="font-semibold text-white">Full Reference</div>
+              <div className="text-[10px] text-[#777777] mt-0.5">Lilies, Sunflowers & Emerald</div>
             </button>
 
             <button
-              onClick={() => applyPreset('starlight')}
-              className="px-3 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-400 text-left transition-all group"
+              onClick={() => {
+                soundSynth.playBloom(1);
+                setComp({
+                  sunflower: 0,
+                  daisy: 1,
+                  lily: 4,
+                  tulip: 2,
+                  lavender: 2,
+                  density: 'ultra',
+                  renderStyle: 'fine',
+                });
+                setPaletteMode('emerald');
+                setCharDensity('matrix');
+              }}
+              className="p-2.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] border border-[#262626] text-left transition-all text-white"
             >
-              <div className="text-xs font-semibold text-purple-300 flex items-center gap-1">
-                <span>🌸 Starlight Lilies</span>
-              </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">Lilies & Orchids in Flute</div>
+              <div className="font-semibold text-emerald-400">Emerald Starlight</div>
+              <div className="text-[10px] text-[#777777] mt-0.5">Luminescent Stargazer (Img 1)</div>
             </button>
 
             <button
-              onClick={() => applyPreset('cottage')}
-              className="px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/30 hover:border-orange-400 text-left transition-all group"
+              onClick={() => {
+                soundSynth.playBloom(2);
+                setComp({
+                  sunflower: 1,
+                  daisy: 3,
+                  lily: 3,
+                  tulip: 1,
+                  lavender: 2,
+                  density: 'ultra',
+                  renderStyle: 'fine',
+                });
+                setPaletteMode('monochrome');
+                setCharDensity('fine');
+              }}
+              className="p-2.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] border border-[#262626] text-left transition-all text-white"
             >
-              <div className="text-xs font-semibold text-orange-300 flex items-center gap-1">
-                <span>📜 Rustic Kraft Mix</span>
-              </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">Tulips, Daisies & Seal</div>
+              <div className="font-semibold text-white">Silver Wireframe</div>
+              <div className="text-[10px] text-[#777777] mt-0.5">Pure B&W Starlight (Img 2 & 3)</div>
             </button>
 
             <button
-              onClick={() => applyPreset('meadow')}
-              className="px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-400 text-left transition-all group"
+              onClick={() => {
+                soundSynth.playBloom(3);
+                setComp({
+                  sunflower: 1,
+                  daisy: 4,
+                  lily: 2,
+                  tulip: 2,
+                  lavender: 3,
+                  density: 'ultra',
+                  renderStyle: 'scanline',
+                });
+                setPaletteMode('amber');
+                setCharDensity('dense');
+              }}
+              className="p-2.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] border border-[#262626] text-left transition-all text-white"
             >
-              <div className="text-xs font-semibold text-emerald-300 flex items-center gap-1">
-                <span>🧺 Garden Basket</span>
-              </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">Lush Wildflower Mix</div>
+              <div className="font-semibold text-amber-300">Golden Sunset</div>
+              <div className="text-[10px] text-[#777777] mt-0.5">Warm Amber CRT Glow</div>
             </button>
           </div>
         </div>
 
-        {/* Flower Selector Cards (Strictly No Roses) */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-pink-400 font-mono flex items-center gap-1.5">
-                <Heart className="w-3.5 h-3.5 text-pink-500" />
-                <span>Select Mixed Flowers ({bouquetResult.totalFlowers})</span>
-              </h3>
-              <p className="text-[11px] text-slate-400">
-                Click + to add flowers to Sreeparna's bouquet (strictly fresh meadow blooms, no roses!)
-              </p>
-            </div>
+        {/* Flower Composition Counters (Strictly No Roses) */}
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl">
+          <div className="pb-2 mb-3 border-b border-[#1c1c1c]">
+            <span className="text-[11px] font-mono tracking-wider uppercase text-[#888888]">
+              Floral Elements
+            </span>
+            <p className="text-[11px] text-[#666666] font-mono mt-0.5">
+              Strictly meadow blooms: Sunflowers, Daisies, Lilies, Tulips, Lavender.
+            </p>
           </div>
 
-          <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-            {FLOWERS.map((flower) => {
-              const currentCount = (config as unknown as Record<string, number>)[flower.id] || 0;
-              return (
-                <div
-                  key={flower.id}
-                  className={`p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 ${
-                    currentCount > 0
-                      ? 'bg-slate-800/80 border-pink-500/40 shadow-sm'
-                      : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 border"
-                      style={{
-                        backgroundColor: `${flower.primaryColor}15`,
-                        borderColor: `${flower.primaryColor}40`,
-                      }}
-                    >
-                      {flower.symbol}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-white truncate">
-                          {flower.name}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectedInspectFlower(flower);
-                            soundSynth.playSparkle();
-                          }}
-                          title="Inspect flower ASCII art & meaning"
-                          className="text-slate-500 hover:text-slate-300 text-xs"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <p className="text-[11px] text-slate-400 truncate">
-                        {flower.meaning}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Quantity Counter */}
-                  <div className="flex items-center gap-1.5 shrink-0 bg-slate-900/90 border border-slate-700/60 rounded-lg p-0.5">
-                    <button
-                      onClick={() => handleFlowerCountChange(flower.id, -1)}
-                      disabled={currentCount === 0}
-                      className="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-800"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="w-5 text-center text-xs font-mono font-bold text-amber-300">
-                      {currentCount}
-                    </span>
-                    <button
-                      onClick={() => handleFlowerCountChange(flower.id, 1)}
-                      className="w-6 h-6 rounded flex items-center justify-center text-pink-400 hover:text-pink-300 hover:bg-slate-800"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bouquet Wrapper & Vase Selector */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono mb-2.5 flex items-center gap-1.5">
-            <span>Choose Wrap or Vase</span>
-          </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-            {WRAPPERS.map((wrapper) => {
-              const isSelected = config.wrapperId === wrapper.id;
-              return (
+          <div className="space-y-2 font-mono text-xs">
+            {/* Lilies */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-[#101010] border border-[#222222]">
+              <div>
+                <span className="text-white font-semibold">Stargazer Lilies</span>
+                <span className="text-[10px] text-[#666666] block">Ruby, Violet & Pearlescent Star</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
-                  key={wrapper.id}
                   onClick={() => {
-                    setConfig((prev) => ({ ...prev, wrapperId: wrapper.id }));
-                    soundSynth.playBloom(3);
+                    soundSynth.playPluck();
+                    setComp((p) => ({ ...p, lily: Math.max(0, p.lily - 1) }));
                   }}
-                  className={`p-2 rounded-xl border text-center transition-all ${
-                    isSelected
-                      ? 'bg-cyan-500/10 border-cyan-400 shadow-md shadow-cyan-500/20 text-white'
-                      : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
                 >
-                  <div className="text-xl mb-1">{wrapper.icon}</div>
-                  <div className="text-[11px] font-medium leading-tight truncate">
-                    {wrapper.name.split(' ')[0]}
-                  </div>
+                  -
                 </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Personalization & Dedication Plaque */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
-            <span>Dedication Plaque</span>
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-[11px] text-slate-400 block mb-1 font-mono">For (Recipient):</label>
-              <input
-                type="text"
-                value={config.recipientName}
-                onChange={(e) => setConfig((prev) => ({ ...prev, recipientName: e.target.value }))}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-pink-500 font-mono"
-                placeholder="Sreeparna"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-400 block mb-1 font-mono">From (Sender):</label>
-              <input
-                type="text"
-                value={config.senderName}
-                onChange={(e) => setConfig((prev) => ({ ...prev, senderName: e.target.value }))}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
-                placeholder="Ishan"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-[11px] text-slate-400 block mb-1 font-mono">Sweet Note on Plaque:</label>
-            <input
-              type="text"
-              value={config.customMessage}
-              onChange={(e) => setConfig((prev) => ({ ...prev, customMessage: e.target.value }))}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
-              placeholder="You make every day blossom!"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Right Canvas: Real-Time Colorful ASCII Bouquet & Actions */}
-      <div className="lg:col-span-7 space-y-4">
-        {/* Bouquet Display Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-md">
-          {/* Top Canvas Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-800">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-rose-500 inline-block animate-pulse"></span>
-              <span className="text-xs font-mono font-semibold text-slate-200">
-                ASCII Bouquet Canvas
-              </span>
-              <span className="text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700">
-                {bouquetResult.totalFlowers} blooms
-              </span>
-            </div>
-
-            {/* Animation Controls */}
-            <div className="flex items-center gap-1 bg-slate-950/60 border border-slate-800 rounded-lg p-0.5">
-              {(['sway', 'glow', 'bounce', 'none'] as const).map((style) => (
+                <span className="w-5 text-center font-bold text-white">{comp.lily}</span>
                 <button
-                  key={style}
-                  onClick={() => setAnimationStyle(style)}
-                  className={`px-2 py-0.5 text-[10px] rounded font-mono uppercase transition-all ${
-                    animationStyle === style
-                      ? 'bg-pink-500 text-white font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
+                  onClick={() => {
+                    soundSynth.playBloom(comp.lily);
+                    setComp((p) => ({ ...p, lily: Math.min(6, p.lily + 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Sunflower */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-[#101010] border border-[#222222]">
+              <div>
+                <span className="text-white font-semibold">Radiant Sunflower</span>
+                <span className="text-[10px] text-[#666666] block">Fibonacci Seed Centerpiece</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    soundSynth.playPluck();
+                    setComp((p) => ({ ...p, sunflower: Math.max(0, p.sunflower - 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  -
+                </button>
+                <span className="w-5 text-center font-bold text-white">{comp.sunflower}</span>
+                <button
+                  onClick={() => {
+                    soundSynth.playBloom(comp.sunflower);
+                    setComp((p) => ({ ...p, sunflower: Math.min(2, p.sunflower + 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Tulips */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-[#101010] border border-[#222222]">
+              <div>
+                <span className="text-white font-semibold">Upright Tulips</span>
+                <span className="text-[10px] text-[#666666] block">Flank Goblet Blooms</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    soundSynth.playPluck();
+                    setComp((p) => ({ ...p, tulip: Math.max(0, p.tulip - 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  -
+                </button>
+                <span className="w-5 text-center font-bold text-white">{comp.tulip}</span>
+                <button
+                  onClick={() => {
+                    soundSynth.playBloom(comp.tulip);
+                    setComp((p) => ({ ...p, tulip: Math.min(4, p.tulip + 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Lavender */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-[#101010] border border-[#222222]">
+              <div>
+                <span className="text-white font-semibold">Lavender & Top Buds</span>
+                <span className="text-[10px] text-[#666666] block">Slender Vertical Reaching Stalks</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    soundSynth.playPluck();
+                    setComp((p) => ({ ...p, lavender: Math.max(0, p.lavender - 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  -
+                </button>
+                <span className="w-5 text-center font-bold text-white">{comp.lavender}</span>
+                <button
+                  onClick={() => {
+                    soundSynth.playBloom(comp.lavender);
+                    setComp((p) => ({ ...p, lavender: Math.min(4, p.lavender + 1) }));
+                  }}
+                  className="w-6 h-6 rounded bg-[#1c1c1c] hover:bg-[#2a2a2a] text-white flex items-center justify-center"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Rasterization Matrix & Texture Controls */}
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-3 font-mono text-xs">
+          <div className="pb-2 border-b border-[#1c1c1c] flex items-center gap-1.5 text-[11px] text-[#888888] uppercase">
+            <Sliders className="w-3.5 h-3.5 text-white" />
+            <span>Pixel Density & Scanline Ramp</span>
+          </div>
+
+          <div>
+            <label className="text-[#888888] block text-[11px] mb-1.5">Character Ramp Style:</label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { id: 'scanline', label: 'Scanline CRT (Ref)' },
+                { id: 'matrix', label: 'Dot Matrix (Img 1)' },
+                { id: 'fine', label: 'Ultra-Fine Micro' },
+                { id: 'dense', label: 'Typography (Img 3)' },
+              ].map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => {
+                    setCharDensity(style.id as unknown as 'scanline' | 'fine' | 'matrix' | 'dense');
+                    soundSynth.playSparkle();
+                  }}
+                  className={`p-2 rounded border text-left text-[11px] transition-all ${
+                    charDensity === style.id
+                      ? 'bg-white text-black font-bold border-white'
+                      : 'bg-[#121212] border-[#222222] text-[#888888] hover:text-white'
                   }`}
                 >
-                  {style}
+                  {style.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Real-time Colored ASCII Canvas */}
-          <div className="bg-[#0b0d15] border border-slate-800/80 rounded-xl p-4 sm:p-6 overflow-x-auto flex justify-center min-h-[480px] shadow-inner items-center">
-            <AsciiRenderer
-              lines={bouquetResult.lines}
-              animate={animationStyle}
-              fontSize="sm"
-              className="text-center"
+          {/* Color Palette (Applied to ASCII only) */}
+          <div>
+            <label className="text-[#888888] block text-[11px] mb-1.5">ASCII Chromatic Mode:</label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { id: 'reference', label: 'Reference Vivid' },
+                { id: 'emerald', label: 'Emerald Glow' },
+                { id: 'monochrome', label: 'Silver Starlight' },
+                { id: 'amber', label: 'Warm Amber' },
+              ].map((pal) => (
+                <button
+                  key={pal.id}
+                  onClick={() => {
+                    setPaletteMode(pal.id as AsciiPaletteMode);
+                    soundSynth.playSparkle();
+                  }}
+                  className={`p-2 rounded border text-left text-[11px] transition-all ${
+                    paletteMode === pal.id
+                      ? 'bg-white text-black font-bold border-white'
+                      : 'bg-[#121212] border-[#222222] text-[#888888] hover:text-white'
+                  }`}
+                >
+                  {pal.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid Resolution Slider */}
+          <div>
+            <div className="flex justify-between text-[11px] text-[#888888] mb-1">
+              <span>Grid Columns:</span>
+              <span className="text-white font-bold">{gridCols} chars</span>
+            </div>
+            <input
+              type="range"
+              min={120}
+              max={220}
+              step={10}
+              value={gridCols}
+              onChange={(e) => {
+                const cols = parseInt(e.target.value);
+                setGridCols(cols);
+                setGridRows(Math.floor(cols * 0.56));
+              }}
+              className="w-full accent-white bg-[#222222]"
             />
           </div>
 
-          {/* Action Buttons Below Canvas */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[#888888] text-[11px]">Bioluminescent Bloom Glow:</span>
             <button
-              onClick={handleCelebrate}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white font-medium text-xs sm:text-sm shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              onClick={() => setGlow(!glow)}
+              className={`px-2 py-0.5 rounded text-[11px] border font-mono ${
+                glow ? 'bg-white text-black border-white font-semibold' : 'bg-[#121212] text-[#666666] border-[#222222]'
+              }`}
             >
-              <Wand2 className="w-4 h-4 animate-spin" />
-              <span>Celebrate Bouquet! 💐</span>
+              {glow ? 'ON' : 'OFF'}
             </button>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleCopyAscii}
-                className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-mono flex items-center gap-1.5 transition-all"
-                title="Copy plain ASCII text to clipboard"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied ASCII!' : 'Copy ASCII'}</span>
-              </button>
-
-              <button
-                onClick={handleCopyShareableMessage}
-                className="px-3 py-2 rounded-xl bg-pink-950/70 hover:bg-pink-900/80 border border-pink-700/60 text-pink-200 text-xs font-mono flex items-center gap-1.5 transition-all"
-                title="Copy formatted message with love card"
-              >
-                {copiedMessage ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
-                <span>{copiedMessage ? 'Copied Love Card!' : 'Share For Sreeparna'}</span>
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Selected Flowers Overview Badge */}
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-300 font-mono flex items-center justify-between">
+        {/* Celebrate button */}
+        <button
+          onClick={handleCelebrate}
+          className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-200 text-black font-mono font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+        >
+          <Wand2 className="w-3.5 h-3.5" />
+          <span>Celebrate Sreeparna's Bouquet 💐</span>
+        </button>
+      </div>
+
+      {/* Right Canvas: Realistic High-Density ASCII Display */}
+      <div className="lg:col-span-8 space-y-4">
+        <RealisticAsciiViewer
+          asciiData={asciiData}
+          paletteMode={paletteMode}
+          title="SREEPARNA'S BOTANICAL SPECIMEN [BOUQUET]"
+          glow={glow}
+        />
+
+        {/* Dedication Info Strip (Pure B&W) */}
+        <div className="bg-[#080808] border border-[#222222] rounded-xl p-3 text-xs text-[#888888] font-mono flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-amber-400">💐 Bouquet Composition:</span>
-            <span className="text-slate-400">{bouquetResult.flowerListText}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+            <span className="text-white font-semibold">Bouquet Architecture:</span>
+            <span>Ruby Stargazer Lily • Pearlescent Lily • Golden Sunflower • Emerald Stem Spray</span>
           </div>
-          <span className="text-[11px] text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
-            Handcrafted for Sreeparna ✨
+          <span className="text-[11px] text-[#666666] border border-[#222222] px-2 py-0.5 rounded">
+            Handcrafted for Sreeparna • 2026
           </span>
         </div>
       </div>
-
-      {/* Flower Inspect Modal */}
-      {selectedInspectFlower && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-pink-500/40 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-gentle-bounce">
-            <button
-              onClick={() => setSelectedInspectFlower(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white font-mono text-sm bg-slate-800 px-2 py-1 rounded-lg"
-            >
-              [✕ Close]
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-3xl">{selectedInspectFlower.symbol}</span>
-              <div>
-                <h3 className="text-lg font-bold text-white">
-                  {selectedInspectFlower.name}
-                </h3>
-                <p className="text-xs text-pink-400 font-mono">
-                  {selectedInspectFlower.meaning}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#0b0d15] border border-slate-800 rounded-xl p-4 mb-4 flex justify-center">
-              <AsciiRenderer
-                lines={selectedInspectFlower.asciiArt}
-                animate="sway"
-                fontSize="sm"
-              />
-            </div>
-
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-              "{selectedInspectFlower.description}"
-            </p>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  handleFlowerCountChange(selectedInspectFlower.id, 1);
-                  setSelectedInspectFlower(null);
-                }}
-                className="px-4 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-pink-500/30"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add to Sreeparna's Bouquet</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

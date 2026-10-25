@@ -49,36 +49,34 @@ export const DaisyPetalGame: React.FC = () => {
       : 'He loves me MORE! 💖';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 font-mono">
       {/* Title Card */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center shadow-xl backdrop-blur-md">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono mb-2">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Interactive Daisy Oracle</span>
+      <div className="bg-[#080808] border border-[#222222] rounded-xl p-5 text-center shadow-xl">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#141414] border border-[#262626] text-white text-xs mb-2">
+          <Sparkles className="w-3.5 h-3.5 text-white" />
+          <span>DAISY PETAL ORACLE</span>
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-          "He Loves Me... He Loves Me More!"
+        <h2 className="text-lg sm:text-xl font-bold text-white tracking-wide">
+          "HE LOVES ME... HE LOVES ME MORE"
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-md mx-auto">
-          Pluck each daisy petal to reveal 10 heartfelt reasons why Ishan loves Sreeparna!
+        <p className="text-xs text-[#888888] mt-1 max-w-md mx-auto">
+          Pluck each daisy petal to reveal 10 reasons why Ishan loves Sreeparna.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
         {/* Left Side: Interactive ASCII Daisy Flower */}
-        <div className="md:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl flex flex-col items-center justify-center relative min-h-[460px]">
+        <div className="md:col-span-7 bg-[#080808] border border-[#222222] rounded-xl p-6 shadow-2xl flex flex-col items-center justify-center relative min-h-[460px]">
           {/* Status Verdict Header */}
           <div className="mb-4 text-center">
             <span
-              className={`text-sm sm:text-base font-bold font-mono px-4 py-1.5 rounded-full inline-block transition-all shadow-md ${
+              className={`text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full inline-block transition-all border ${
                 isFinished
-                  ? 'bg-gradient-to-r from-pink-500 to-amber-400 text-slate-950 font-extrabold animate-pulse'
-                  : pluckedPetals.length % 2 === 1
-                  ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30'
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  ? 'bg-white text-black border-white font-extrabold animate-pulse'
+                  : 'bg-[#141414] text-white border-[#262626]'
               }`}
             >
-              {isFinished ? 'Verdict: He Loves Sreeparna INFINITELY! 💖' : currentVerdict}
+              {isFinished ? 'VERDICT: HE LOVES SREEPARNA INFINITELY' : currentVerdict}
             </span>
           </div>
 
@@ -145,7 +143,7 @@ export const DaisyPetalGame: React.FC = () => {
           {/* Reset Button */}
           <button
             onClick={handleReset}
-            className="mt-4 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono flex items-center gap-1.5 border border-slate-700 transition-all"
+            className="mt-4 px-3 py-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] text-white text-xs font-mono flex items-center gap-1.5 border border-[#262626] transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Regrow Daisy Petals</span>
@@ -155,17 +153,14 @@ export const DaisyPetalGame: React.FC = () => {
         {/* Right Side: Reason Cards & Heart Reveal */}
         <div className="md:col-span-5 space-y-4">
           {currentReason ? (
-            <div className="bg-slate-900/90 border border-pink-500/30 rounded-2xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-md animate-gentle-bounce">
+            <div className="bg-[#080808] border border-[#262626] rounded-xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-md">
               <div className="flex items-center gap-2 mb-3">
-                <span
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold font-mono"
-                  style={{ backgroundColor: currentReason.color }}
-                >
+                <span className="w-7 h-7 rounded bg-white text-black flex items-center justify-center text-xs font-bold font-mono">
                   #{currentReason.id}
                 </span>
                 <div>
-                  <span className="text-[11px] font-mono text-pink-400 uppercase tracking-wider">
-                    Reason I Love You:
+                  <span className="text-[10px] font-mono text-[#888888] uppercase tracking-wider">
+                    REASON I LOVE YOU:
                   </span>
                   <h4 className="text-sm font-bold text-white">
                     {currentReason.text}
@@ -173,32 +168,32 @@ export const DaisyPetalGame: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 leading-relaxed font-sans">
+              <div className="bg-[#121212] border border-[#222222] rounded-lg p-3 text-xs text-[#d0d0d0] leading-relaxed">
                 "{currentReason.subtext}"
               </div>
 
-              <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
+              <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-[#777777]">
                 <span>Progress: {pluckedPetals.length} / {totalPetals} plucked</span>
-                <span className="text-pink-400 flex items-center gap-1">
-                  <Heart className="w-3 h-3 fill-pink-500" /> Sreeparna
+                <span className="text-white flex items-center gap-1">
+                  <Heart className="w-3 h-3 fill-white" /> Sreeparna
                 </span>
               </div>
             </div>
           ) : (
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 text-center text-slate-400">
-              <div className="text-3xl mb-2 animate-pulse">🌼</div>
-              <h4 className="text-sm font-bold text-slate-200 mb-1">
+            <div className="bg-[#080808] border border-[#222222] rounded-xl p-6 text-center text-[#777777]">
+              <div className="text-2xl mb-2 text-white">❀</div>
+              <h4 className="text-sm font-bold text-white mb-1">
                 A Petal Awaits Your Touch
               </h4>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                Click any numbered petal on the daisy to reveal a secret love reason written just for you!
+              <p className="text-xs text-[#777777] max-w-xs mx-auto">
+                Click any numbered petal on the daisy to reveal a secret love reason written for you.
               </p>
             </div>
           )}
 
           {/* List of Revealed Reasons */}
-          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 shadow-xl">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono mb-2 flex items-center gap-1.5">
+          <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white font-mono mb-2 flex items-center gap-1.5">
               <Award className="w-3.5 h-3.5" />
               <span>Revealed Love Reasons ({pluckedPetals.length})</span>
             </h4>
@@ -214,13 +209,13 @@ export const DaisyPetalGame: React.FC = () => {
                         soundSynth.playSparkle();
                       }
                     }}
-                    className={`p-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all ${
+                    className={`p-2 rounded text-xs font-mono flex items-center gap-2 transition-all ${
                       isRevealed
-                        ? 'bg-slate-800/80 border border-slate-700 text-slate-200 cursor-pointer hover:border-pink-500/40'
-                        : 'bg-slate-950/40 border border-slate-900 text-slate-600'
+                        ? 'bg-[#141414] border border-[#2a2a2a] text-white cursor-pointer hover:border-white'
+                        : 'bg-[#0a0a0a] border border-[#1a1a1a] text-[#555555]'
                     }`}
                   >
-                    <span className="text-pink-400 font-bold shrink-0">#{petal.id}</span>
+                    <span className="font-bold shrink-0 text-white">#{petal.id}</span>
                     <span className="truncate">
                       {isRevealed ? petal.text : '•••••••••••••••••••••••••••••'}
                     </span>
