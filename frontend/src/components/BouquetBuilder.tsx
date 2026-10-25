@@ -11,6 +11,17 @@ import {
 import { RealisticAsciiViewer } from './RealisticAsciiViewer';
 import { soundSynth } from '../utils/audio';
 
+export const BOUQUET_MESSAGES = [
+  'I LOVE YOU SREEPARNA',
+  'YOU MAKE MY HEART BLOOM',
+  'FOREVER AND ALWAYS',
+  'MY SWEETEST SUNSHINE',
+  'EVERY PETAL FOR SREEPARNA',
+  'YOU ARE MY FAVORITE PERSON',
+  'MY WHOLE HEART IS YOURS',
+  'LOVING YOU MORE EVERY DAY',
+];
+
 export const BouquetBuilder: React.FC = () => {
   const [comp, setComp] = useState<BouquetComposition>({
     sunflower: 1,
@@ -21,8 +32,10 @@ export const BouquetBuilder: React.FC = () => {
     density: 'ultra',
     renderStyle: 'scanline',
     bloomProgress: 1.0,
-    floatingMessage: 'I LOVE YOU SREEPARNA',
+    floatingMessage: BOUQUET_MESSAGES[0],
   });
+
+  const [isAutoCycle, setIsAutoCycle] = useState<boolean>(true);
 
   const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('reference');
   const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('scanline');
@@ -37,6 +50,25 @@ export const BouquetBuilder: React.FC = () => {
   const animationFrameRef = useRef<number | null>(null);
 
   const renderer = useMemo(() => new BotanicalCanvasRenderer(520, 640), []);
+
+  // Automatically cycle between romantic messages
+  useEffect(() => {
+    if (!isAutoCycle || isBlooming) return;
+
+    const interval = setInterval(() => {
+      setComp((c) => {
+        const currentMsg = (c.floatingMessage || '').toUpperCase().trim();
+        const currentIndex = BOUQUET_MESSAGES.indexOf(currentMsg);
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % BOUQUET_MESSAGES.length;
+        return {
+          ...c,
+          floatingMessage: BOUQUET_MESSAGES[nextIndex],
+        };
+      });
+    }, 3800);
+
+    return () => clearInterval(interval);
+  }, [isAutoCycle, isBlooming]);
 
   // Sync bloom value to composition
   useEffect(() => {
@@ -189,40 +221,56 @@ export const BouquetBuilder: React.FC = () => {
         {/* Floating Romantic Message Editor */}
         <div className="bg-[#080808] border border-[#222222] rounded-xl p-4 shadow-xl space-y-2.5">
           <div className="pb-2 border-b border-[#1c1c1c] flex items-center justify-between">
-            <span className="text-[11px] tracking-wider uppercase text-[#888888] flex items-center gap-1.5">
+            <span className="text-[11px] tracking-wider uppercase text-[#888888] flex items-center gap-1.5 font-bold">
               <Type className="w-3.5 h-3.5 text-white" />
               <span>Glowing Romantic Message</span>
             </span>
+            <button
+              onClick={() => setIsAutoCycle((prev) => !prev)}
+              className={`text-[10px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border transition-all ${
+                isAutoCycle
+                  ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300 shadow-sm'
+                  : 'bg-[#141414] border-[#2a2a2a] text-[#888888] hover:text-white'
+              }`}
+              title={isAutoCycle ? 'Auto-cycling messages every ~4s (Click to pause)' : 'Click to resume auto-cycle'}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${isAutoCycle ? 'bg-emerald-400 animate-pulse' : 'bg-[#666666]'}`} />
+              <span className="font-semibold">{isAutoCycle ? 'Auto-Cycle: Active' : 'Auto: Paused'}</span>
+            </button>
           </div>
 
           <input
             type="text"
             value={comp.floatingMessage || ''}
-            onChange={(e) =>
-              setComp((prev) => ({ ...prev, floatingMessage: e.target.value }))
-            }
+            onChange={(e) => {
+              setIsAutoCycle(false);
+              setComp((prev) => ({ ...prev, floatingMessage: e.target.value }));
+            }}
             placeholder="I LOVE YOU SREEPARNA"
             className="w-full bg-[#121212] border border-[#262626] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white font-mono"
           />
 
-          <div className="flex flex-wrap gap-1 text-[10px]">
-            {[
-              'I LOVE YOU SREEPARNA',
-              'YOU MAKE MY HEART BLOOM',
-              'FOREVER AND ALWAYS',
-              'MY SWEETEST SUNSHINE',
-            ].map((presetMsg) => (
-              <button
-                key={presetMsg}
-                onClick={() => {
-                  soundSynth.playSparkle();
-                  setComp((prev) => ({ ...prev, floatingMessage: presetMsg }));
-                }}
-                className="px-2 py-0.5 rounded bg-[#141414] hover:bg-[#202020] text-[#888888] hover:text-white border border-[#222222]"
-              >
-                {presetMsg}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-1.5 text-[10px]">
+            {BOUQUET_MESSAGES.map((presetMsg) => {
+              const isActive = (comp.floatingMessage || '').toUpperCase().trim() === presetMsg;
+              return (
+                <button
+                  key={presetMsg}
+                  onClick={() => {
+                    soundSynth.playSparkle();
+                    setComp((prev) => ({ ...prev, floatingMessage: presetMsg }));
+                    setIsAutoCycle(true);
+                  }}
+                  className={`px-2.5 py-1 rounded transition-all border ${
+                    isActive
+                      ? 'bg-white text-black font-bold border-white shadow-md scale-[1.02]'
+                      : 'bg-[#141414] hover:bg-[#202020] text-[#888888] hover:text-white border-[#222222]'
+                  }`}
+                >
+                  {presetMsg}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -246,7 +294,8 @@ export const BouquetBuilder: React.FC = () => {
             <button
               onClick={() => {
                 soundSynth.playBloom(0);
-                setComp({
+                setComp((prev) => ({
+                  ...prev,
                   sunflower: 1,
                   daisy: 2,
                   lily: 4,
@@ -255,8 +304,7 @@ export const BouquetBuilder: React.FC = () => {
                   density: 'ultra',
                   renderStyle: 'scanline',
                   bloomProgress: 1.0,
-                  floatingMessage: 'I LOVE YOU SREEPARNA',
-                });
+                }));
                 setPaletteMode('reference');
                 setCharDensity('scanline');
                 setBloomValue(1.0);
@@ -270,7 +318,8 @@ export const BouquetBuilder: React.FC = () => {
             <button
               onClick={() => {
                 soundSynth.playBloom(1);
-                setComp({
+                setComp((prev) => ({
+                  ...prev,
                   sunflower: 0,
                   daisy: 1,
                   lily: 4,
@@ -279,8 +328,7 @@ export const BouquetBuilder: React.FC = () => {
                   density: 'ultra',
                   renderStyle: 'fine',
                   bloomProgress: 1.0,
-                  floatingMessage: 'LUMINESCENT EMERALD LILY',
-                });
+                }));
                 setPaletteMode('emerald');
                 setCharDensity('matrix');
                 setBloomValue(1.0);
@@ -294,7 +342,8 @@ export const BouquetBuilder: React.FC = () => {
             <button
               onClick={() => {
                 soundSynth.playBloom(2);
-                setComp({
+                setComp((prev) => ({
+                  ...prev,
                   sunflower: 1,
                   daisy: 3,
                   lily: 3,
@@ -303,8 +352,7 @@ export const BouquetBuilder: React.FC = () => {
                   density: 'ultra',
                   renderStyle: 'fine',
                   bloomProgress: 1.0,
-                  floatingMessage: 'SILVER STARLIGHT WIREFRAME',
-                });
+                }));
                 setPaletteMode('monochrome');
                 setCharDensity('fine');
                 setBloomValue(1.0);
@@ -318,7 +366,8 @@ export const BouquetBuilder: React.FC = () => {
             <button
               onClick={() => {
                 soundSynth.playBloom(3);
-                setComp({
+                setComp((prev) => ({
+                  ...prev,
                   sunflower: 1,
                   daisy: 4,
                   lily: 2,
@@ -327,8 +376,7 @@ export const BouquetBuilder: React.FC = () => {
                   density: 'ultra',
                   renderStyle: 'scanline',
                   bloomProgress: 1.0,
-                  floatingMessage: 'GOLDEN AMBER SUNSET',
-                });
+                }));
                 setPaletteMode('amber');
                 setCharDensity('dense');
                 setBloomValue(1.0);

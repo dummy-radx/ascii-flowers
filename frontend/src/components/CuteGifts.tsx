@@ -23,7 +23,6 @@ export const CuteGifts: React.FC = () => {
     locket: false,
   });
   const [copied, setCopied] = useState<boolean>(false);
-  const [fontSize, setFontSize] = useState<'normal' | 'large'>('large');
 
   const renderer = useMemo(() => new BotanicalCanvasRenderer(480, 560), []);
 
@@ -169,61 +168,28 @@ export const CuteGifts: React.FC = () => {
               <MessageSquare className="w-3.5 h-3.5 text-pink-400" />
               <span>ASCII Loving Message</span>
             </span>
-            <div className="flex items-center gap-2">
-              <div className="bg-[#141414] border border-[#2a2a2a] rounded p-0.5 flex items-center text-[10px]">
-                <button
-                  onClick={() => setFontSize('normal')}
-                  className={`px-1.5 py-0.5 rounded transition-all ${
-                    fontSize === 'normal'
-                      ? 'bg-white text-black font-bold'
-                      : 'text-[#888888] hover:text-white'
-                  }`}
-                  title="Medium ASCII Size"
-                >
-                  A
-                </button>
-                <button
-                  onClick={() => setFontSize('large')}
-                  className={`px-1.5 py-0.5 rounded transition-all ${
-                    fontSize === 'large'
-                      ? 'bg-white text-black font-bold'
-                      : 'text-[#888888] hover:text-white'
-                  }`}
-                  title="Large ASCII Size (Bigger Text)"
-                >
-                  A+
-                </button>
-              </div>
-
-              <button
-                onClick={handleCopyAscii}
-                className="text-[10px] px-2 py-1 rounded bg-[#141414] hover:bg-[#222222] border border-[#2a2a2a] text-white flex items-center gap-1 transition-all"
-                title="Copy ASCII Art message"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3 h-3 text-emerald-400" />
-                    <span className="text-emerald-400">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span>Copy ASCII</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              onClick={handleCopyAscii}
+              className="text-[10px] px-2.5 py-1 rounded bg-[#141414] hover:bg-[#222222] border border-[#2a2a2a] text-white flex items-center gap-1.5 transition-all"
+              title="Copy ASCII Art message"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3 h-3 text-emerald-400" />
+                  <span className="text-emerald-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3" />
+                  <span>Copy ASCII</span>
+                </>
+              )}
+            </button>
           </div>
 
-          {/* ASCII Monospace Card Render */}
+          {/* ASCII Monospace Card Render (Locked to A+ Large Display) */}
           <div className="bg-[#000000] border border-[#222222] rounded-lg p-3 sm:p-3.5 overflow-x-auto shadow-inner">
-            <pre
-              className={`font-mono text-pink-200 select-all whitespace-pre tracking-tight transition-all ${
-                fontSize === 'large'
-                  ? 'text-[12.5px] sm:text-[13.5px] md:text-[14px] leading-[16px] sm:leading-[17.5px] md:leading-[18px]'
-                  : 'text-[11px] sm:text-[12px] leading-[14px] sm:leading-[15.5px]'
-              }`}
-            >
+            <pre className="font-mono text-pink-200 select-all whitespace-pre tracking-tight transition-all text-[12.5px] sm:text-[13.5px] md:text-[14px] leading-[16px] sm:leading-[17.5px] md:leading-[18px]">
               {displayedAscii}
             </pre>
           </div>
