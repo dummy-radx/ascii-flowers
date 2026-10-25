@@ -4,7 +4,7 @@ class CuteSoundSynth {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
 
-  private initCtx() {
+  public initCtx(): Promise<void> {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
@@ -12,8 +12,13 @@ class CuteSoundSynth {
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      return this.ctx.resume().catch(() => {});
     }
+    return Promise.resolve();
+  }
+
+  public isUnlocked(): boolean {
+    return Boolean(this.ctx && this.ctx.state === 'running');
   }
 
   public setMuted(muted: boolean) {
@@ -218,3 +223,13 @@ class CuteSoundSynth {
 }
 
 export const soundSynth = new CuteSoundSynth();
+
+// Auto-unlock Web Audio on the very first user interaction
+if (typeof window !== 'undefined') {
+  const handleInteraction = () => {
+    soundSynth.initCtx();
+  };
+  window.addEventListener('pointerdown', handleInteraction, { passive: true });
+  window.addEventListener('keydown', handleInteraction, { passive: true });
+  window.addEventListener('touchstart', handleInteraction, { passive: true });
+}

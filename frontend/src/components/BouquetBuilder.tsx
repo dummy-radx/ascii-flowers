@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { RefreshCw, Wand2, Sliders, Layers, Play, Pause, RotateCcw, Type } from 'lucide-react';
 import {
@@ -31,7 +31,7 @@ export const BouquetBuilder: React.FC = () => {
     lavender: 2,
     density: 'ultra',
     renderStyle: 'scanline',
-    bloomProgress: 1.0,
+    bloomProgress: 0.05,
     floatingMessage: BOUQUET_MESSAGES[0],
   });
 
@@ -45,8 +45,8 @@ export const BouquetBuilder: React.FC = () => {
   const [asciiData, setAsciiData] = useState<AsciiGridResult | null>(null);
 
   // Blooming Animation State
-  const [isBlooming, setIsBlooming] = useState<boolean>(false);
-  const [bloomValue, setBloomValue] = useState<number>(1.0);
+  const [isBlooming, setIsBlooming] = useState<boolean>(true);
+  const [bloomValue, setBloomValue] = useState<number>(0.05);
   const animationFrameRef = useRef<number | null>(null);
 
   const renderer = useMemo(() => new BotanicalCanvasRenderer(520, 640), []);
@@ -96,35 +96,52 @@ export const BouquetBuilder: React.FC = () => {
   }, [comp, paletteMode, charDensity, gridCols, gridRows, glow, renderer, bloomValue]);
 
   // Bloom animation loop
-  const startBloomAnimation = () => {
-    if (isBlooming) {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      setIsBlooming(false);
-      return;
+  const triggerBloomAnimation = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
 
     setIsBlooming(true);
     setBloomValue(0.05);
-    soundSynth.playBloom(0);
+    try {
+      soundSynth.playBloom(0);
+    } catch {
+      // Audio context may require user interaction first
+    }
 
     let progress = 0.05;
     const startTime = performance.now();
     const duration = 2800; // 2.8 seconds for smooth blossoming
+    let playedStage1 = false;
+    let playedStage2 = false;
+    let playedStage3 = false;
 
     const step = (now: number) => {
       const elapsed = now - startTime;
       progress = Math.min(1.0, 0.05 + (elapsed / duration) * 0.95);
       setBloomValue(progress);
 
-      if (Math.abs(progress - 0.35) < 0.02) soundSynth.playBloom(1);
-      if (Math.abs(progress - 0.65) < 0.02) soundSynth.playBloom(2);
-      if (Math.abs(progress - 0.95) < 0.02) soundSynth.playBloom(4);
+      if (!playedStage1 && progress >= 0.35) {
+        playedStage1 = true;
+        try { soundSynth.playBloom(1); } catch {}
+      }
+      if (!playedStage2 && progress >= 0.65) {
+        playedStage2 = true;
+        try { soundSynth.playBloom(2); } catch {}
+      }
+      if (!playedStage3 && progress >= 0.95) {
+        playedStage3 = true;
+        try { soundSynth.playBloom(4); } catch {}
+      }
 
       if (progress < 1.0) {
         animationFrameRef.current = requestAnimationFrame(step);
       } else {
         setIsBlooming(false);
-        soundSynth.playCelebration();
+        try {
+          soundSynth.playCelebration();
+        } catch {}
         confetti({
           particleCount: 80,
           spread: 70,
@@ -135,7 +152,59 @@ export const BouquetBuilder: React.FC = () => {
     };
 
     animationFrameRef.current = requestAnimationFrame(step);
+  }, []);
+
+  const toggleBloomAnimation = () => {
+    if (isBlooming) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      setIsBlooming(false);
+    } else {
+      triggerBloomAnimation();
+    }
   };
+
+  // Automatically trigger bloom animation as soon as the website is opened
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      triggerBloomAnimation();
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [triggerBloomAnimation]);
+
+  const [audioUnlocked, setAudioUnlocked] = useState<boolean>(() => soundSynth.isUnlocked());
+
+  // If audio is locked on initial page load (browser autoplay policy),
+  // unlock audio and re-bloom with sound on the first click/key anywhere on the page!
+  useEffect(() => {
+    if (audioUnlocked) return;
+
+    const handleFirstGesture = () => {
+      soundSynth.initCtx().then(() => {
+        setAudioUnlocked(true);
+        triggerBloomAnimation();
+      });
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+
+    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
+    window.addEventListener('keydown', handleFirstGesture, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+  }, [audioUnlocked, triggerBloomAnimation]);
 
   const handleSurpriseMix = () => {
     soundSynth.playSparkle();
@@ -177,7 +246,7 @@ export const BouquetBuilder: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={startBloomAnimation}
+              onClick={toggleBloomAnimation}
               className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                 isBlooming
                   ? 'bg-amber-400 text-black shadow-lg shadow-amber-400/20'
@@ -624,11 +693,29 @@ export const BouquetBuilder: React.FC = () => {
 
       {/* Right Canvas: Realistic High-Density ASCII Display */}
       <div className="lg:col-span-8 space-y-4">
+        {!audioUnlocked && (
+          <button
+            onClick={() => {
+              soundSynth.initCtx().then(() => {
+                setAudioUnlocked(true);
+                triggerBloomAnimation();
+              });
+            }}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-purple-500/20 border border-amber-400/40 text-amber-200 text-xs font-mono flex items-center justify-center gap-2 shadow-lg animate-pulse hover:bg-white/10 transition-all cursor-pointer"
+          >
+            <span>🎵</span>
+            <span className="font-bold">Click anywhere or tap here to bloom with music & celebration sound</span>
+            <span>✨</span>
+          </button>
+        )}
+
         <RealisticAsciiViewer
           asciiData={asciiData}
           paletteMode={paletteMode}
           title="SREEPARNA'S BOTANICAL SPECIMEN [BOUQUET]"
           glow={glow}
+          onCanvasClick={toggleBloomAnimation}
+          actionHint="Click bouquet to bloom with sound ✨"
         />
 
         {/* Dedication Info Strip */}

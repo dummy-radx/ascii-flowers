@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import confetti from 'canvas-confetti';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 import {
   BotanicalCanvasRenderer,
@@ -15,8 +16,8 @@ export const SoloSpecimens: React.FC = () => {
   const [selectedFlower, setSelectedFlower] = useState<SoloFlower>('lily');
   const [paletteMode, setPaletteMode] = useState<AsciiPaletteMode>('emerald');
   const [charDensity, setCharDensity] = useState<'scanline' | 'fine' | 'matrix' | 'dense'>('matrix');
-  const [bloomValue, setBloomValue] = useState<number>(1.0);
-  const [isBlooming, setIsBlooming] = useState<boolean>(false);
+  const [bloomValue, setBloomValue] = useState<number>(0.05);
+  const [isBlooming, setIsBlooming] = useState<boolean>(true);
   const animationFrameRef = useRef<number | null>(null);
 
   const gridCols = 150;
@@ -127,38 +128,89 @@ export const SoloSpecimens: React.FC = () => {
     setAsciiData(result);
   }, [selectedFlower, paletteMode, charDensity, bloomValue, gridCols, gridRows, glow, renderer]);
 
-  const startBloomAnimation = () => {
-    if (isBlooming) {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      setIsBlooming(false);
-      return;
+  // Bloom animation loop with rich pentatonic chimes & celebration
+  const triggerBloomAnimation = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
 
     setIsBlooming(true);
     setBloomValue(0.05);
-    soundSynth.playBloom(0);
+    try {
+      soundSynth.playBloom(0);
+    } catch {}
 
     let progress = 0.05;
     const startTime = performance.now();
-    const duration = 2800;
+    const duration = 2600;
+    let playedStage1 = false;
+    let playedStage2 = false;
+    let playedStage3 = false;
 
     const step = (now: number) => {
       const elapsed = now - startTime;
       progress = Math.min(1.0, 0.05 + (elapsed / duration) * 0.95);
       setBloomValue(progress);
 
-      if (Math.abs(progress - 0.5) < 0.02) soundSynth.playBloom(2);
+      if (!playedStage1 && progress >= 0.35) {
+        playedStage1 = true;
+        try { soundSynth.playBloom(1); } catch {}
+      }
+      if (!playedStage2 && progress >= 0.65) {
+        playedStage2 = true;
+        try { soundSynth.playBloom(2); } catch {}
+      }
+      if (!playedStage3 && progress >= 0.95) {
+        playedStage3 = true;
+        try { soundSynth.playBloom(4); } catch {}
+      }
 
       if (progress < 1.0) {
         animationFrameRef.current = requestAnimationFrame(step);
       } else {
         setIsBlooming(false);
-        soundSynth.playCelebration();
+        try {
+          soundSynth.playCelebration();
+        } catch {}
+        confetti({
+          particleCount: 65,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#ffffff', '#fbbf24', '#f43f5e', '#a855f7', '#34d399'],
+        });
       }
     };
 
     animationFrameRef.current = requestAnimationFrame(step);
+  }, []);
+
+  const toggleBloomAnimation = () => {
+    if (isBlooming) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      setIsBlooming(false);
+    } else {
+      triggerBloomAnimation();
+    }
   };
+
+  // Automatically trigger bloom animation on load / first time opening
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      triggerBloomAnimation();
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [triggerBloomAnimation]);
 
   const specimens = [
     {
@@ -223,7 +275,7 @@ export const SoloSpecimens: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={startBloomAnimation}
+              onClick={toggleBloomAnimation}
               className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                 isBlooming
                   ? 'bg-amber-400 text-black shadow-lg shadow-amber-400/20'
@@ -274,8 +326,7 @@ export const SoloSpecimens: React.FC = () => {
                     setSelectedFlower(item.id as SoloFlower);
                     setPaletteMode(item.recommendedPalette as AsciiPaletteMode);
                     setCharDensity(item.recommendedDensity as unknown as 'scanline' | 'fine' | 'matrix' | 'dense');
-                    setBloomValue(1.0);
-                    soundSynth.playBloom(2);
+                    triggerBloomAnimation();
                   }}
                   className={`w-full p-3 rounded-lg border text-left font-mono transition-all ${
                     isSelected
@@ -351,6 +402,8 @@ export const SoloSpecimens: React.FC = () => {
           paletteMode={paletteMode}
           title={`BOTANICAL SPECIMEN: ${currentSpecimen.name.toUpperCase()}`}
           glow={glow}
+          onCanvasClick={toggleBloomAnimation}
+          actionHint="Click flower to bloom with sound ✨"
         />
       </div>
     </div>
