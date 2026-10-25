@@ -10,6 +10,7 @@ interface RealisticAsciiViewerProps {
   glow?: boolean;
   onCanvasClick?: () => void;
   actionHint?: string;
+  hideRawTypography?: boolean;
 }
 
 export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
@@ -19,6 +20,7 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
   glow = true,
   onCanvasClick,
   actionHint,
+  hideRawTypography = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [viewMode, setViewMode] = useState<'canvas' | 'text'>('canvas');
@@ -107,28 +109,30 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
 
         {/* View Mode & Zoom Controls */}
         <div className="flex items-center gap-1.5">
-          <div className="bg-[#141414] border border-[#262626] rounded-md p-0.5 flex items-center">
-            <button
-              onClick={() => setViewMode('canvas')}
-              className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
-                viewMode === 'canvas'
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-[#888888] hover:text-white'
-              }`}
-            >
-              Dot Matrix
-            </button>
-            <button
-              onClick={() => setViewMode('text')}
-              className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
-                viewMode === 'text'
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-[#888888] hover:text-white'
-              }`}
-            >
-              Raw Typography
-            </button>
-          </div>
+          {!hideRawTypography && (
+            <div className="bg-[#141414] border border-[#262626] rounded-md p-0.5 flex items-center">
+              <button
+                onClick={() => setViewMode('canvas')}
+                className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
+                  viewMode === 'canvas'
+                    ? 'bg-white text-black font-semibold'
+                    : 'text-[#888888] hover:text-white'
+                }`}
+              >
+                Dot Matrix
+              </button>
+              <button
+                onClick={() => setViewMode('text')}
+                className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
+                  viewMode === 'text'
+                    ? 'bg-white text-black font-semibold'
+                    : 'text-[#888888] hover:text-white'
+                }`}
+              >
+                Raw Typography
+              </button>
+            </div>
+          )}
 
           {viewMode === 'canvas' && (
             <div className="flex items-center bg-[#141414] border border-[#262626] rounded-md p-0.5 text-[#888888]">

@@ -504,6 +504,7 @@ export const LoveLetters: React.FC = () => {
                 : `SEALED WAX ENVELOPE: ${selectedLetter.badge.toUpperCase()}`
             }
             glow={true}
+            hideRawTypography={true}
             onCanvasClick={openProgress < 0.6 ? toggleAnimation : undefined}
             actionHint={
               openProgress < 0.6
