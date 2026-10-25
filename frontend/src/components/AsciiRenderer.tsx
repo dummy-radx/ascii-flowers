@@ -128,12 +128,12 @@ export const AsciiRenderer: React.FC<AsciiRendererProps> = ({
 
   const sizeClass =
     fontSize === 'xs'
-      ? 'text-[11px] leading-[13px]'
+      ? 'text-[12px] sm:text-[12.5px] leading-[15px]'
       : fontSize === 'sm'
-      ? 'text-[13px] leading-[16px]'
+      ? 'text-[14px] sm:text-[14.5px] leading-[18px]'
       : fontSize === 'lg'
-      ? 'text-[16px] leading-[20px]'
-      : 'text-[14px] leading-[18px]';
+      ? 'text-[18px] sm:text-[19px] leading-[24px]'
+      : 'text-[16px] sm:text-[16.5px] leading-[21px]';
 
   return (
     <pre

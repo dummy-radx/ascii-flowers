@@ -29,8 +29,8 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
     if (!ctx) return;
 
     // Character cell dimensions (aspect ratio ~ 0.55 for monospace)
-    const cellW = 5.2 * zoom;
-    const cellH = 9.2 * zoom;
+    const cellW = 5.8 * zoom;
+    const cellH = 10.2 * zoom;
 
     canvas.width = Math.floor(asciiData.width * cellW);
     canvas.height = Math.floor(asciiData.height * cellH);
@@ -40,7 +40,7 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.imageSmoothingEnabled = true;
-    const fontSize = Math.max(8, Math.round(8.6 * zoom));
+    const fontSize = Math.max(9, Math.round(9.6 * zoom));
     ctx.font = `bold ${fontSize}px "JetBrains Mono", "Space Mono", monospace`;
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
@@ -175,7 +175,7 @@ export const RealisticAsciiViewer: React.FC<RealisticAsciiViewerProps> = ({
           />
         ) : (
           <pre
-            className="text-[6.5px] sm:text-[7.5px] leading-[8px] font-mono text-white select-all overflow-x-auto whitespace-pre tracking-tight"
+            className="text-[8.5px] sm:text-[10px] md:text-[11px] leading-[11px] sm:leading-[13px] md:leading-[14px] font-mono text-white select-all overflow-x-auto whitespace-pre tracking-tight"
             style={{
               fontFamily: '"JetBrains Mono", monospace',
               color:

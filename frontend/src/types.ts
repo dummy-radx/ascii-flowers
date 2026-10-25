@@ -53,6 +53,8 @@ export interface LoveNote {
   badge: string;
   message: string;
   ps: string;
+  asciiArt?: string;
+  plainAscii?: string;
 }
 
 export type GardenTheme = 'midnight' | 'twilight' | 'strawberry' | 'matcha' | 'sunset';

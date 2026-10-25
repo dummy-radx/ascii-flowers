@@ -166,6 +166,55 @@ class CuteSoundSynth {
       osc.stop(this.ctx.currentTime + 1.25);
     });
   }
+
+  // Wax seal cracking sound with resonant snap and chime
+  public playWaxCrack() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    // Crisp high-frequency snap
+    const snapOsc = this.ctx.createOscillator();
+    const snapGain = this.ctx.createGain();
+    snapOsc.type = 'sawtooth';
+    snapOsc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+    snapOsc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.08);
+
+    snapGain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+    snapGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+    snapOsc.connect(snapGain);
+    snapGain.connect(this.ctx.destination);
+    snapOsc.start();
+    snapOsc.stop(this.ctx.currentTime + 0.14);
+
+    // Warm resonant wax chime
+    setTimeout(() => {
+      this.playBloom(3);
+    }, 70);
+  }
+
+  // Paper letter unfolding rustle
+  public playPaperRustle() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(650, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(880, this.ctx.currentTime + 0.25);
+
+    gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.12, this.ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.38);
+  }
 }
 
 export const soundSynth = new CuteSoundSynth();

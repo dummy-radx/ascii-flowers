@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar, type ActiveTab } from './components/Navbar';
 import { BouquetBuilder } from './components/BouquetBuilder';
 import { SoloSpecimens } from './components/SoloSpecimens';
@@ -6,22 +6,52 @@ import { CuteGifts } from './components/CuteGifts';
 import { ClickMeadow } from './components/ClickMeadow';
 import { DaisyPetalGame } from './components/DaisyPetalGame';
 import { LoveLetters } from './components/LoveLetters';
+import { AsciiRadioBox } from './components/AsciiRadioBox';
 import { Heart } from 'lucide-react';
 
+const VALID_TABS: ActiveTab[] = ['bouquet', 'specimens', 'gifts', 'meadow', 'oracle', 'letters', 'radio'];
+
 export function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('bouquet');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '') as ActiveTab;
+      if (VALID_TABS.includes(hash)) {
+        return hash;
+      }
+    }
+    return 'bouquet';
+  });
   const [isMuted, setIsMuted] = useState<boolean>(false);
+
+  // Sync tab with URL hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '') as ActiveTab;
+      if (VALID_TABS.includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      window.location.hash = tab;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#000000] text-white flex flex-col font-mono selection:bg-white selection:text-black">
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         isMuted={isMuted}
         setIsMuted={setIsMuted}
       />
-
 
       {/* Main Content Area based on Tab */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-4 flex-1">
@@ -31,6 +61,7 @@ export function App() {
         {activeTab === 'meadow' && <ClickMeadow />}
         {activeTab === 'oracle' && <DaisyPetalGame />}
         {activeTab === 'letters' && <LoveLetters />}
+        {activeTab === 'radio' && <AsciiRadioBox />}
       </main>
 
       {/* Minimalist Monospace Footer */}

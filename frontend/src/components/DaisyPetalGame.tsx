@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, Heart, RotateCcw, X, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { Sparkles, Heart, RotateCcw, X, ChevronLeft, ChevronRight, Award, Copy, Check } from 'lucide-react';
 import { PETAL_REASONS } from '../data/loveNotes';
 import { soundSynth } from '../utils/audio';
 
 export const DaisyPetalGame: React.FC = () => {
   const [pluckedPetals, setPluckedPetals] = useState<number[]>([]);
   const [activePopupIndex, setActivePopupIndex] = useState<number | null>(null);
+  const [copiedReason, setCopiedReason] = useState<boolean>(false);
 
   const totalPetals = PETAL_REASONS.length;
   const remainingPetals = totalPetals - pluckedPetals.length;
@@ -187,9 +188,9 @@ export const DaisyPetalGame: React.FC = () => {
         </div>
 
         {/* Daisy Stem in ASCII */}
-        <div className="font-mono text-xs text-center text-emerald-400 select-none my-1">
+        <div className="font-mono text-sm sm:text-base leading-snug text-center text-emerald-400 select-none my-2">
           <div>||</div>
-          <div className="text-emerald-500">~-(_ || _)~-</div>
+          <div className="text-emerald-500 font-bold">~-(_ || _)~-</div>
           <div>||</div>
           <div className="text-slate-600">~~~~~~~~~~~~~~~~~~~~</div>
         </div>
@@ -308,6 +309,44 @@ export const DaisyPetalGame: React.FC = () => {
               {currentReason.subtext}
               <span className="text-xl leading-none text-[#555555] font-serif ml-1">”</span>
             </div>
+
+            {/* ASCII Reason Card (Matching Gift & Flower Text ASCIIs) */}
+            {currentReason.asciiArt && (
+              <div className="bg-[#050505] border border-[#222222] rounded-xl p-3 sm:p-4 my-3 overflow-x-auto shadow-inner relative group">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1a1a1a] text-[10px] text-[#777777]">
+                  <span className="uppercase font-bold tracking-wider text-pink-400">
+                    ASCII Oracle Card
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (currentReason.asciiArt) {
+                        navigator.clipboard.writeText(currentReason.asciiArt);
+                        soundSynth.playSparkle();
+                        setCopiedReason(true);
+                        setTimeout(() => setCopiedReason(false), 2000);
+                      }
+                    }}
+                    className="px-2 py-0.5 rounded bg-[#141414] hover:bg-[#202020] border border-[#2a2a2a] text-white flex items-center gap-1 transition-all"
+                    title="Copy ASCII card"
+                  >
+                    {copiedReason ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy ASCII</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <pre className="text-[11.5px] sm:text-[12.5px] leading-[15px] sm:leading-[16.5px] font-mono text-amber-200 select-all whitespace-pre tracking-tight">
+                  {currentReason.asciiArt}
+                </pre>
+              </div>
+            )}
 
             {/* Modal Navigation & Actions Footer */}
             <div className="mt-5 pt-4 border-t border-[#222222] flex flex-wrap items-center justify-between gap-3">

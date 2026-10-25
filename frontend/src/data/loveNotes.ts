@@ -282,6 +282,94 @@ You are the sunflower in my life that always brings golden warmth. You are the g
 
 Thank you for being the sweetest, kindest, and most adorable girlfriend. I hope this little ASCII playground makes you smile today and whenever you visit it.`,
     ps: 'P.S. Pet the kitten in the corner, she has a message for you too! (=^･ω･^=)♥',
+    asciiArt: `.----------------------------------------------.
+|  [LETTER #01] * SWEET NOTE FOR SREEPARNA     |
++==============================================+
+|                                              |
+|            .---.   .---.       .-'-.         |
+|           (     \\ /     )     (  ❀  )        |
+|            )  (  ♥  )  (        '-.-'         |
+|           (     / \\     )         ||          |
+|            '---'   '---'        ~~~~~         |
+|          ✦  SREEPARNA & ISHAN FOREVER  ✦     |
+|                                              |
+|  >> TO MY PRETTIEST BLOSSOM:                 |
+|     "Dear Sreeparna,                         |
+|                                              |
+|      I wanted to build you something that    |
+|      never withers—a garden of flowers       |
+|      crafted just for you out of tiny        |
+|      characters, colors, and love.           |
+|                                              |
+|      You are the sunflower in my life that   |
+|      always brings golden warmth. You are    |
+|      the gentle daisy that reminds me to     |
+|      appreciate simple sweet moments. And    |
+|      you are the graceful lily that makes    |
+|      everything in life so much more         |
+|      beautiful.                              |
+|                                              |
+|      Thank you for being the sweetest,       |
+|      kindest, and most adorable girlfriend.  |
+|      I hope this little ASCII playground     |
+|      makes you smile today and whenever      |
+|      you visit it."                          |
+|                                              |
+|  >> WITH ALL MY LOVE:                        |
+|     "Forever yours, Ishan ♥"                 |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Pet the kitten in the corner, she has   |
+|      a message for you too! (=^･ω･^=)♥"      |
+|                                              |
+|  ==========================================  |
+|         ✦ S ♥ I • LOCKED WITH LOVE ✦         |
+'----------------------------------------------'`,
+    plainAscii: `.----------------------------------------------.
+|  [LETTER #01] * SWEET NOTE FOR SREEPARNA     |
++==============================================+
+|                                              |
+|            .---.   .---.       .-'-.         |
+|           (     \\ /     )     (  ❀  )        |
+|            )  (  ♥  )  (        '-.-'         |
+|           (     / \\     )         ||          |
+|            '---'   '---'        ~~~~~         |
+|          ✦  SREEPARNA & ISHAN FOREVER  ✦     |
+|                                              |
+|  >> TO MY PRETTIEST BLOSSOM:                 |
+|     "Dear Sreeparna,                         |
+|                                              |
+|      I wanted to build you something that    |
+|      never withers—a garden of flowers       |
+|      crafted just for you out of tiny        |
+|      characters, colors, and love.           |
+|                                              |
+|      You are the sunflower in my life that   |
+|      always brings golden warmth. You are    |
+|      the gentle daisy that reminds me to     |
+|      appreciate simple sweet moments. And    |
+|      you are the graceful lily that makes    |
+|      everything in life so much more         |
+|      beautiful.                              |
+|                                              |
+|      Thank you for being the sweetest,       |
+|      kindest, and most adorable girlfriend.  |
+|      I hope this little ASCII playground     |
+|      makes you smile today and whenever      |
+|      you visit it."                          |
+|                                              |
+|  >> WITH ALL MY LOVE:                        |
+|     "Forever yours, Ishan ♥"                 |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Pet the kitten in the corner, she has   |
+|      a message for you too! (=^･ω･^=)♥"      |
+|                                              |
+|  ==========================================  |
+|         ✦ S ♥ I • LOCKED WITH LOVE ✦         |
+'----------------------------------------------'`,
   },
   {
     id: 'letter-2',
@@ -293,6 +381,80 @@ If you are having a busy day, remember to pause for a second, take a deep breath
 
 Drink some water, stretch your arms, and remember how capable, brilliant, and wonderful you are. No matter what comes your way, you've got this, and I am always cheering for you right beside you!`,
     ps: 'P.S. Pluck a daisy petal in the game tab when you need a gentle reminder why you are so special!',
+    asciiArt: `.----------------------------------------------.
+|  [LETTER #02] * WARM WISHES & SUNSHINE HUGS  |
++==============================================+
+|                                              |
+|            \\   |   /           .-''''-.      |
+|          --  ( ✿ )  --        (  ᵔᴥᵔ  ) (♥)  |
+|            /   |   \\          (  S+I  ) //   |
+|              *   *             '--...--'     |
+|          ✦  WARM SUNSHINE & CUDDLY HUGS  ✦   |
+|                                              |
+|  >> HEY CUTIE:                               |
+|     "Hey cutie,                              |
+|                                              |
+|      If you are having a busy day, remember  |
+|      to pause for a second, take a deep      |
+|      breath, and know that someone loves you |
+|      more than words can say.                |
+|                                              |
+|      Drink some water, stretch your arms,    |
+|      and remember how capable, brilliant,    |
+|      and wonderful you are. No matter what   |
+|      comes your way, you've got this, and I  |
+|      am always cheering for you right beside |
+|      you!"                                   |
+|                                              |
+|  >> ALWAYS CHEERING FOR YOU:                 |
+|     "Sending warm bear cuddles, Ishan 🧸♥"   |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Pluck a daisy petal in the game tab     |
+|      when you need a gentle reminder why     |
+|      you are so special!"                    |
+|                                              |
+|  ==========================================  |
+|        ✦ ALWAYS HERE TO WARM YOUR HEART ✦    |
+'----------------------------------------------'`,
+    plainAscii: `.----------------------------------------------.
+|  [LETTER #02] * WARM WISHES & SUNSHINE HUGS  |
++==============================================+
+|                                              |
+|            \\   |   /           .-''''-.      |
+|          --  ( ✿ )  --        (  ᵔᴥᵔ  ) (♥)  |
+|            /   |   \\          (  S+I  ) //   |
+|              *   *             '--...--'     |
+|          ✦  WARM SUNSHINE & CUDDLY HUGS  ✦   |
+|                                              |
+|  >> HEY CUTIE:                               |
+|     "Hey cutie,                              |
+|                                              |
+|      If you are having a busy day, remember  |
+|      to pause for a second, take a deep      |
+|      breath, and know that someone loves you |
+|      more than words can say.                |
+|                                              |
+|      Drink some water, stretch your arms,    |
+|      and remember how capable, brilliant,    |
+|      and wonderful you are. No matter what   |
+|      comes your way, you've got this, and I  |
+|      am always cheering for you right beside |
+|      you!"                                   |
+|                                              |
+|  >> ALWAYS CHEERING FOR YOU:                 |
+|     "Sending warm bear cuddles, Ishan 🧸♥"   |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Pluck a daisy petal in the game tab     |
+|      when you need a gentle reminder why     |
+|      you are so special!"                    |
+|                                              |
+|  ==========================================  |
+|        ✦ ALWAYS HERE TO WARM YOUR HEART ✦    |
+'----------------------------------------------'`,
   },
   {
     id: 'letter-3',
@@ -304,6 +466,238 @@ Out of the endless lines of code, the vastness of the digital universe, and the 
 
 Every flower here was coded with care, thinking of your smile. May your days be as colorful, gentle, and blooming as this secret little meadow.`,
     ps: 'With infinite love, hugs, and endless flowers,\nIshan ♥',
+    asciiArt: `.----------------------------------------------.
+|  [LETTER #03] * THE INFINITE GARDEN OF US    |
++==============================================+
+|                                              |
+|             .---.     .---.       ✦   *   ✦  |
+|            (     \\   /     )     *  ( ❀ )  * |
+|             )  (   ∞   )  (        '-.-'     |
+|            (     /   \\     )         ||      |
+|             '---'     '---'         ~~~~     |
+|        ✦ OUR LOVE • TIMELESS & BOUNDLESS ✦   |
+|                                              |
+|  >> TO MY BELOVED SREEPARNA:                 |
+|     "Sreeparna,                              |
+|                                              |
+|      Out of the endless lines of code, the   |
+|      vastness of the digital universe, and   |
+|      the billions of people in the world,    |
+|      meeting you and having you in my life   |
+|      is my favorite miracle.                 |
+|                                              |
+|      Every flower here was coded with care,  |
+|      thinking of your smile. May your days   |
+|      be as colorful, gentle, and blooming    |
+|      as this secret little meadow."          |
+|                                              |
+|  >> MY ETERNAL PROMISE:                      |
+|     "With infinite love, hugs, and endless   |
+|      flowers, Ishan ♥"                       |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Yesterday, today, tomorrow, and every   |
+|      day after—you are my forever and        |
+|      always. ♥"                              |
+|                                              |
+|  ==========================================  |
+|         ✦ S + I • ETERNAL & EVERLASTING ✦    |
+'----------------------------------------------'`,
+    plainAscii: `.----------------------------------------------.
+|  [LETTER #03] * THE INFINITE GARDEN OF US    |
++==============================================+
+|                                              |
+|             .---.     .---.       ✦   *   ✦  |
+|            (     \\   /     )     *  ( ❀ )  * |
+|             )  (   ∞   )  (        '-.-'     |
+|            (     /   \\     )         ||      |
+|             '---'     '---'         ~~~~     |
+|        ✦ OUR LOVE • TIMELESS & BOUNDLESS ✦   |
+|                                              |
+|  >> TO MY BELOVED SREEPARNA:                 |
+|     "Sreeparna,                              |
+|                                              |
+|      Out of the endless lines of code, the   |
+|      vastness of the digital universe, and   |
+|      the billions of people in the world,    |
+|      meeting you and having you in my life   |
+|      is my favorite miracle.                 |
+|                                              |
+|      Every flower here was coded with care,  |
+|      thinking of your smile. May your days   |
+|      be as colorful, gentle, and blooming    |
+|      as this secret little meadow."          |
+|                                              |
+|  >> MY ETERNAL PROMISE:                      |
+|     "With infinite love, hugs, and endless   |
+|      flowers, Ishan ♥"                       |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Yesterday, today, tomorrow, and every   |
+|      day after—you are my forever and        |
+|      always. ♥"                              |
+|                                              |
+|  ==========================================  |
+|         ✦ S + I • ETERNAL & EVERLASTING ✦    |
+'----------------------------------------------'`,
+  },
+  {
+    id: 'letter-4',
+    title: 'You Are My Favorite Person',
+    badge: '💖 Heart to Heart',
+    message: `Dearest Sreeparna,
+
+Whenever I think of the concept of home, I think of your smile and your gentle voice.
+
+Thank you for being my safe haven, my best friend, and the brightest star in every night sky. I cherish you beyond what words can ever capture.`,
+    ps: 'P.S. Look in the mirror today: you are pure magic and radiant perfection, cutu.',
+    asciiArt: `.----------------------------------------------.
+|  [LETTER #04] * YOU ARE MY FAVORITE PERSON   |
++==============================================+
+|                                              |
+|           .-''''-.   .-''''-.     .-----.    |
+|          /        \\ /        \\   / * ✦ * \\   |
+|         |    S     ♥    I     | | (  ♥  ) |  |
+|          \\                  /   \\  '-'  /   |
+|           '.              .'     '-----'     |
+|             '--..____..--'          ||       |
+|        ✦ TWO HEARTS • ONE ETERNAL HOME ✦     |
+|                                              |
+|  >> DEAREST SREEPARNA:                       |
+|     "Whenever I think of the concept of      |
+|      home, I think of your smile and your    |
+|      gentle voice.                           |
+|                                              |
+|      Thank you for being my safe haven, my   |
+|      best friend, and the brightest star in  |
+|      every night sky. I cherish you beyond   |
+|      what words can ever capture."           |
+|                                              |
+|  >> ALL MY AFFECTION:                        |
+|     "Yours across all space & time, Ishan ♥" |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Look in the mirror today: you are pure  |
+|      magic and radiant perfection, cutu."    |
+|                                              |
+|  ==========================================  |
+|         ✦ SREEPARNA ♥ ISHAN • ALWAYS ✦       |
+'----------------------------------------------'`,
+    plainAscii: `.----------------------------------------------.
+|  [LETTER #04] * YOU ARE MY FAVORITE PERSON   |
++==============================================+
+|                                              |
+|           .-''''-.   .-''''-.     .-----.    |
+|          /        \\ /        \\   / * ✦ * \\   |
+|         |    S     ♥    I     | | (  ♥  ) |  |
+|          \\                  /   \\  '-'  /   |
+|           '.              .'     '-----'     |
+|             '--..____..--'          ||       |
+|        ✦ TWO HEARTS • ONE ETERNAL HOME ✦     |
+|                                              |
+|  >> DEAREST SREEPARNA:                       |
+|     "Whenever I think of the concept of      |
+|      home, I think of your smile and your    |
+|      gentle voice.                           |
+|                                              |
+|      Thank you for being my safe haven, my   |
+|      best friend, and the brightest star in  |
+|      every night sky. I cherish you beyond   |
+|      what words can ever capture."           |
+|                                              |
+|  >> ALL MY AFFECTION:                        |
+|     "Yours across all space & time, Ishan ♥" |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Look in the mirror today: you are pure  |
+|      magic and radiant perfection, cutu."    |
+|                                              |
+|  ==========================================  |
+|         ✦ SREEPARNA ♥ ISHAN • ALWAYS ✦       |
+'----------------------------------------------'`,
+  },
+  {
+    id: 'letter-5',
+    title: "A Stargazer's Midnight Vow",
+    badge: '🌌 Starlight Vow',
+    message: `My sweetest angel,
+
+When the world falls quiet at night, I look up at the stars and thank the universe for placing you in my life.
+
+No distance, no passage of time, and no storm could ever diminish how tenderly and deeply I love you. You are my constant, my peace, and my greatest joy.`,
+    ps: 'P.S. Close your eyes, breathe gently, and know that you are so deeply loved and forever protected.',
+    asciiArt: `.----------------------------------------------.
+|  [LETTER #05] * A STARGAZER'S MIDNIGHT VOW   |
++==============================================+
+|                                              |
+|                 /\\        *    .   ✦         |
+|                /  \\      ( \\_   *            |
+|            .-./ /\\ \\.-.   )  )     .  *     |
+|           (  / \\  / \\  ) ( _/                |
+|            \\/ /'\\/'\\ \\/   *   .    *  ✦      |
+|          ✦  PROMISE WRITTEN IN THE STARS  ✦  |
+|                                              |
+|  >> MY SWEETEST ANGEL:                       |
+|     "When the world falls quiet at night,    |
+|      I look up at the stars and thank the    |
+|      universe for placing you in my life.    |
+|                                              |
+|      No distance, no passage of time, and    |
+|      no storm could ever diminish how        |
+|      tenderly and deeply I love you. You     |
+|      are my constant, my peace, and my       |
+|      greatest joy."                          |
+|                                              |
+|  >> UNCONDITIONAL DEVOTION:                  |
+|     "Forever and a day, Ishan 🌙♥"           |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Close your eyes, breathe gently, and    |
+|      know that you are so deeply loved and   |
+|      forever protected."                     |
+|                                              |
+|  ==========================================  |
+|         ✦ SREEPARNA & ISHAN FOREVER ✦        |
+'----------------------------------------------'`,
+    plainAscii: `.----------------------------------------------.
+|  [LETTER #05] * A STARGAZER'S MIDNIGHT VOW   |
++==============================================+
+|                                              |
+|                 /\\        *    .   ✦         |
+|                /  \\      ( \\_   *            |
+|            .-./ /\\ \\.-.   )  )     .  *     |
+|           (  / \\  / \\  ) ( _/                |
+|            \\/ /'\\/'\\ \\/   *   .    *  ✦      |
+|          ✦  PROMISE WRITTEN IN THE STARS  ✦  |
+|                                              |
+|  >> MY SWEETEST ANGEL:                       |
+|     "When the world falls quiet at night,    |
+|      I look up at the stars and thank the    |
+|      universe for placing you in my life.    |
+|                                              |
+|      No distance, no passage of time, and    |
+|      no storm could ever diminish how        |
+|      tenderly and deeply I love you. You     |
+|      are my constant, my peace, and my       |
+|      greatest joy."                          |
+|                                              |
+|  >> UNCONDITIONAL DEVOTION:                  |
+|     "Forever and a day, Ishan 🌙♥"           |
+|                                              |
+|  ..........................................  |
+|  >> P.S.                                     |
+|     "Close your eyes, breathe gently, and    |
+|      know that you are so deeply loved and   |
+|      forever protected."                     |
+|                                              |
+|  ==========================================  |
+|         ✦ SREEPARNA & ISHAN FOREVER ✦        |
+'----------------------------------------------'`,
   },
 ];
 
